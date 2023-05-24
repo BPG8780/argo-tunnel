@@ -39,6 +39,11 @@ install_cloudflared() {
   else
     echo -e "${green}您已经安装了最新版本的Cloudflared${reset}"
   fi
+  # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
+  if [ ! -f /root/.cloudflared/cert.pem ]; then
+    echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
+    cloudflared tunnel login
+  fi
 }
 
 # 检查系统架构
@@ -59,9 +64,9 @@ check_arch() {
 menu() {
   while true; do
     echo ""
-    echo -e "${green}Cloudflared安装程序${reset}"
+    echo -e "${green}Cloudflare隧道安装程序${reset}"
     echo "----------------------"
-    echo "1. 安装Cloudflared"
+    echo "1. 安装Cloudflared(登录)"
     echo "2. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
