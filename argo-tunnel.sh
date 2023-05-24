@@ -47,32 +47,32 @@ install_cloudflared() {
 }
 # 配置 Cloudflare 隧道的函数
 configure_tunnel() {
-  read -p "请输入需要创建的隧道名称：" tunnel_name
-  cloudflared tunnel create ${tunnel_name}
-  read -p "请输入域名：" tunnel_domain
-  cloudflared tunnel route dns ${tunnel_name} ${tunnel_domain}
+  read -p "请输入需要创建的隧道名称：" name
+  cloudflared tunnel create ${name}
+  read -p "请输入域名：" domain
+  cloudflared tunnel route dns ${name} ${domain}
   cloudflared tunnel list
-  tunel_uuid=$(cloudflared tunnel list | grep ${tunnel_name} | awk '{print $1}')
-  read -p "请输入传输协议[如不填写默认http]：" tunnel_protocol
-  [[ -z ${tunnel_protocol} ]] && tunnel_protocol="http"
-  read -p "请输入需要反代的服务IP地址[不填默认为本机]：" tunnel_ipadr
-  [[ -z ${tunnel_ipadr} ]] && tunnel_ipadr="127.0.0.1"
-  read -p "请输入需要反代的服务端口[如不填写默认80]：" tunnel_port
-  [[ -z ${tunnel_port} ]] && tunnel_port="80"
-  config_dir="${HOME}/.${tunnel_name}"
+  uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
+  read -p "请输入传输协议[如不填写默认quic]：" protocol
+  protocol=${protocol:-quic}
+  read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
+  ipadr=${ipadr:-https://localhost}
+  read -p "请输入需要反代的服务端口[如不填写默认80]：" port
+  port=${port:-80}
+  config_dir="${HOME}/.${name}"
   mkdir -p ${config_dir}
   cat > ${config_dir}/config.yml <<EOF
-tunnel: '${tunnel_name}'
-credentials-file: '${config_dir}/${tunel_uuid}.json'
+tunnel: '${name}'
+credentials-file: '${config_dir}/${uuid}.json'
 originRequest:
   connectTimeout: 30s
   noTLSVerify: true
 ingress:
-  - hostname: '${tunnel_domain}'
-    service: '${tunnel_protocol}://${tunnel_ipadr}:${tunnel_port}'
+  - hostname: '${domain}'
+    service: '${protocol}://${ipadr}:${port}'
   - service: http_status:404
 EOF
-  echo "配置文件已经保存到：/root/.${tunnel_name}/config.yml"
+  echo "配置文件已经保存到：${config_dir}/config.yml"
 }
 
 # 检查系统架构
@@ -93,10 +93,10 @@ check_arch() {
 menu() {
   while true; do
     echo ""
-    echo -e "${green}Cloudflare隧道安装程序${reset}"
+    echo -e "${green}Cloudflared隧道安装程序${reset}"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
-    echo "2. 配置Cloudflare隧道"
+    echo "2. 配置Cloudflared(隧道)"
     echo "3. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
