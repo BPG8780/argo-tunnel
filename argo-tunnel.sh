@@ -72,7 +72,7 @@ ingress:
     service: '${tunnel_protocol}://${tunnel_ipadr}:${tunnel_port}'
   - service: http_status:404
 EOF
-  echo "配置文件已经保存到：${config_dir}/config.yml"
+  echo "配置文件已经保存到：/root/.${tunnel_name}/config.yml"
 }
 
 # 检查系统架构
