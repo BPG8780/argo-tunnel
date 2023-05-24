@@ -45,6 +45,48 @@ install_cloudflared() {
     cloudflared tunnel login
   fi
 }
+# 配置 Cloudflare 隧道的函数
+configure_tunnel() {
+read -p "请输入需要创建的隧道名称：" tunnel_name
+
+echo "正在进行 Cloudflare 隧道配置..."
+
+# 获取隧道UUID
+tunel_uuid=$(cloudflared tunnel list | grep ${tunnel_name} | awk '{print $1}')
+
+if [[ ! -z ${tunel_uuid} ]]; then
+  echo "名为 ${tunnel_name} 的 Cloudflare 隧道已存在，请使用其他名称"
+  exit 1
+fi
+
+# 创建 Cloudflare 隧道
+cloudflared tunnel create ${tunnel_name}
+
+# 获取隧道UUID
+tunel_uuid=$(cloudflared tunnel list | grep ${tunnel_name} | awk '{print $1}')
+
+read -p "请输入域名称：" tunnel_domain
+# 添加 DNS 记录
+cloudflared tunnel route dns ${tunel_uuid} ${tunnel_domain}
+
+# 读取传输协议、IP 地址和端口号
+read -p "请输入传输协议[如不填写默认http]：" tunnel_protocol
+[[ -z ${tunnel_protocol} ]] && tunnel_protocol="http"
+
+read -p "请输入需要反代的服务IP地址[不填默认为本机]：" tunnel_ipadr
+[[ -z ${tunnel_ipadr} ]] && tunnel_ipadr="127.0.0.1"
+
+read -p "请输入需要反代的服务端口[如不填写默认80]：" tunnel_port
+[[ -z ${tunnel_port} ]] && tunnel_port="80"
+
+# 修改 YAML 文件以添加反向代理
+cloudflared tunnel ingress modify ${tunel_uuid} --hostname "${tunnel_domain}" --origin "${tunnel_protocol}://${tunnel_ipadr}:${tunnel_port}"
+
+# 重新加载 Cloudflare 隧道
+cloudflared tunnel reload ${tunel_uuid}
+
+echo "已成功创建 Cloudflare 隧道"
+}
 
 # 检查系统架构
 check_arch() {
@@ -67,12 +109,14 @@ menu() {
     echo -e "${green}Cloudflare隧道安装程序${reset}"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
-    echo "2. 退出"
+    echo "2. 配置Cloudflare隧道"
+    echo "3. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
-      2) exit;;
+      2) configure_tunnel;;
+      3) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
   done
