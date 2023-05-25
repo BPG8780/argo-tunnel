@@ -62,15 +62,15 @@ configure_tunnel() {
   config_dir="${HOME}/.${name}"
   mkdir -p ${config_dir}
   cat > /root/${name}.yml <<EOF
-tunnel: "${name}"
-credentials-file: "/root/.cloudflared/${uuid}.json"
-protocol: "${protocol}"
+tunnel: ${name}
+credentials-file: /root/.cloudflared/${uuid}.json
+protocol: ${protocol}
 originRequest:
   connectTimeout: 30s
   noTLSVerify: true
 ingress:
-  - hostname: "${domain}"
-    service: "${protocol}://${ipadr}:${port}"
+  - hostname: ${domain}
+    service: ${ipadr}:${port}
   - service: http_status:404
 EOF
   echo "配置文件已经保存到：/root/${name}.yml"
