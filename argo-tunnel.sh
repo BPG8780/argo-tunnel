@@ -46,6 +46,7 @@ install_cloudflared() {
   fi
 }
 # 配置 Cloudflare 隧道的函数
+# 配置 Cloudflare 隧道的函数
 configure_tunnel() {
   read -p "请输入需要创建的隧道名称：" name
   cloudflared tunnel create ${name}
@@ -73,6 +74,7 @@ ingress:
     service: ${ipadr}:${port}
   - service: http_status:404
 EOF
+
   echo "配置文件已经保存到：/root/${name}.yml"
 
   # 创建 systemd 服务
