@@ -74,6 +74,29 @@ ingress:
   - service: http_status:404
 EOF
   echo "配置文件已经保存到：/root/${name}.yml"
+
+  # 创建 systemd 服务
+  cat > /etc/systemd/system/cloudflared-${name}.service <<EOF
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/cloudflared tunnel run --config /root/${name}.yml --no-autoupdate --daemon
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # 启用并启动 systemd 服务
+  systemctl daemon-reload
+  systemctl enable cloudflared-${name}.service
+  systemctl start cloudflared-${name}.service
+
+  echo "Cloudflare 隧道已成功配置，并设置为开机启动。"
 }
 
 # 检查系统架构
