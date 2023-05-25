@@ -59,9 +59,9 @@ configure_tunnel() {
   ipadr=${ipadr:-https://localhost}
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
-  config_dir="${HOME}/.${name}"
+  config_dir="${name}"
   mkdir -p ${config_dir}
-  cat > ${config_dir}/config.yml <<EOF
+  cat > /root/${name}.yml <<EOF
 tunnel: '${name}'
 credentials-file: '${config_dir}/${uuid}.json'
 originRequest:
@@ -72,7 +72,7 @@ ingress:
     service: '${protocol}://${ipadr}:${port}'
   - service: http_status:404
 EOF
-  echo "配置文件已经保存到：${config_dir}/config.yml"
+  echo "配置文件已经保存到：${name}.yml"
 }
 
 # 检查系统架构
