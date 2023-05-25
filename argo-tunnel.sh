@@ -46,7 +46,6 @@ install_cloudflared() {
   fi
 }
 # 配置 Cloudflare 隧道的函数
-# 配置 Cloudflare 隧道的函数
 configure_tunnel() {
   read -p "请输入需要创建的隧道名称：" name
   cloudflared tunnel create ${name}
@@ -57,7 +56,7 @@ configure_tunnel() {
   read -p "请输入传输协议[如不填写默认quic]：" protocol
   protocol=${protocol:-quic}
   read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
-  ipadr=${ipadr:-https://localhost}
+  ipadr=${ipadr:-127.0.0.1}
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
   config_dir="${HOME}/.${name}"
@@ -71,7 +70,7 @@ originRequest:
   noTLSVerify: true
 ingress:
   - hostname: ${domain}
-    service: ${ipadr}:${port}
+    service: http://${ipadr}:${port}
   - service: http_status:404
 EOF
 
