@@ -63,7 +63,7 @@ configure_tunnel() {
   mkdir -p ${config_dir}
   cat > /root/${name}.yml <<EOF
 tunnel: "${name}"
-credentials-file: "${config_dir}/${uuid}.json"
+credentials-file: "/root/.cloudflared/${uuid}.json"
 protocol: "${protocol}"
 originRequest:
   connectTimeout: 30s
