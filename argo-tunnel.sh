@@ -52,7 +52,7 @@ config_cloudflared() {
   read -p "请输入域名：" domain
   cloudflared tunnel route dns ${name} ${domain}
   cloudflared tunnel list
-  uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
+  uuid=$(cloudflared tunnel list | grep ${name} | sed -n 1p | awk '{print $1}')
   read -p "请输入传输协议[如不填写默认quic]：" protocol
   protocol=${protocol:-quic}
   read -p "服务是否运行在 Docker 容器中？[y/N]：" is_docker
