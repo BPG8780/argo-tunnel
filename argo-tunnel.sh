@@ -46,7 +46,7 @@ install_cloudflared() {
   fi
 }
 # 配置 Cloudflare 隧道的函数
-configure_tunnel() {
+config_cloudflared() {
   read -p "请输入需要创建的隧道名称：" name
   cloudflared tunnel create ${name}
   read -p "请输入域名：" domain
@@ -55,12 +55,19 @@ configure_tunnel() {
   uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
   read -p "请输入传输协议[如不填写默认quic]：" protocol
   protocol=${protocol:-quic}
-  read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
-  ipadr=${ipadr:-127.0.0.1}
+  read -p "服务是否运行在 Docker 容器中？[y/N]：" is_docker
+  if [[ ${is_docker} == [Yy] ]]; then
+    read -p "请输入需要反代的服务的容器名称：" container_name
+    ipadr=$(docker inspect ${container_name} | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
+    # 将WorkingDirectory设置为Docker容器内的目录，以便能够使用“localhost”来访问服务。
+    wd=$(docker inspect ${container_name} --format='{{json .Mounts}}' | jq -r '.[].Source' | head -n 1)
+  else
+    read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
+    ipadr=${ipadr:-localhost}
+    wd=/usr/local/bin
+  fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
-  config_dir="${HOME}/.${name}"
-  mkdir -p ${config_dir}
   cat > /root/${name}.yml <<EOF
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
@@ -83,10 +90,12 @@ Description=Cloudflare Tunnel
 After=network.target
 
 [Service]
-RemainAfterExit=yes
-ExecStart=/usr/local/bin/cloudflared tunnel run --config /root/${name}.yml --no-autoupdate --daemon
-Restart=always
+Type=simple
 User=root
+Group=root
+WorkingDirectory=${wd}
+ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
@@ -94,10 +103,48 @@ EOF
 
   # 启用并启动 systemd 服务
   systemctl daemon-reload
-  systemctl enable cloudflared-${name}.service
   systemctl start cloudflared-${name}.service
+  systemctl enable cloudflared-${name}.service
 
   echo "Cloudflare 隧道已成功配置，并设置为开机启动。"
+}
+
+# 删除Cloudflare隧道和与之关联的systemd服务
+uninstall_cloudflared() {
+  # 显示所有存在的隧道列表供用户选择
+  cloudflared tunnel list
+  read -p "请输入需要删除的隧道名称：" name
+
+  # 检查用户是否输入了隧道名称
+  if [[ ${name} == "" ]]; then
+    echo -e "${red}未输入隧道名称，操作取消${reset}"
+    return 1
+  fi
+
+  # 停止并禁用与该隧道关联的 systemd 服务
+  sudo systemctl stop cloudflared-${name}.service
+  sudo systemctl disable cloudflared-${name}.service
+
+  # 删除与隧道关联的 systemd 服务文件
+  service_file="/etc/systemd/system/cloudflared-${name}.service"
+  if [[ -f ${service_file} ]]; then
+    sudo rm -f ${service_file}
+    sudo systemctl daemon-reload
+    echo -e "${green}已删除隧道 ${name} 的 systemd 服务文件${reset}"
+  fi
+
+  # 根据隧道名称查询隧道 ID
+  uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
+
+  # 检查是否找到指定的隧道
+  if [[ ${uuid} == "" ]]; then
+    echo -e "${red}找不到名称为 ${name} 的隧道，操作取消${reset}"
+    return 1
+  fi
+
+  # 删除隧道
+  cloudflared tunnel delete ${uuid}
+  echo -e "${green}已成功删除隧道：${name}${reset}"
 }
 
 # 检查系统架构
@@ -122,13 +169,15 @@ menu() {
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
-    echo "3. 退出"
+    echo "3. 删除Cloudflared(隧道)"
+    echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
-      2) configure_tunnel;;
-      3) exit;;
+      2) config_cloudflared;;
+      3) uninstall_cloudflared;;
+      0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
   done
