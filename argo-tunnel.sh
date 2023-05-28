@@ -110,26 +110,12 @@ EOF
 }
 # 配置 Cloudflare 隧道的函数
 config_v2ray() {
-  set -e
   read -p "请输入需要创建的隧道名称：" name
-
-  # 检查是否存在同名隧道
-  if cloudflared tunnel list | grep -q ${name}; then
-    echo "已存在同名隧道，请使用其他名称。"
-    exit 1
-  fi
-
   cloudflared tunnel create ${name}
   read -p "请输入域名：" domain
-
-  # 检查域名是否已解析到Cloudflare帐户中
-  if ! cloudflared tunnel route dns ${name} ${domain}; then
-    echo "域名未解析到Cloudflare，请检查后重试。"
-    exit 1
-  fi
-
+  cloudflared tunnel route dns ${name} ${domain}
   cloudflared tunnel list
-  uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
+  uuid=$(cloudflared tunnel list | grep ${name} | sed -n 1p | awk '{print $1}')
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
   
