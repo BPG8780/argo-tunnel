@@ -108,6 +108,71 @@ EOF
 
   echo "Cloudflare 隧道已成功配置，并设置为开机启动。"
 }
+# 配置 Cloudflare 隧道的函数
+config_v2ray() {
+  set -e
+  read -p "请输入需要创建的隧道名称：" name
+
+  # 检查是否存在同名隧道
+  if cloudflared tunnel list | grep -q ${name}; then
+    echo "已存在同名隧道，请使用其他名称。"
+    exit 1
+  fi
+
+  cloudflared tunnel create ${name}
+  read -p "请输入域名：" domain
+
+  # 检查域名是否已解析到Cloudflare帐户中
+  if ! cloudflared tunnel route dns ${name} ${domain}; then
+    echo "域名未解析到Cloudflare，请检查后重试。"
+    exit 1
+  fi
+
+  cloudflared tunnel list
+  uuid=$(cloudflared tunnel list | grep ${name} | awk '{print $1}')
+  read -p "请输入需要反代的服务端口[如不填写默认80]：" port
+  port=${port:-80}
+  
+  # 创建Cloudflare隧道配置文件
+  cat > /root/${name}.yml <<EOF
+tunnel: ${name}
+credentials-file: /root/.cloudflared/${uuid}.json
+ingress:
+  - hostname: ${domain}
+    service: http://localhost:${port}
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: true
+EOF
+
+  echo "配置文件已经保存到：/root/${name}.yml"
+
+  # 创建Systemd服务
+  cat > /etc/systemd/system/cloudflared-${name}.service <<EOF
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=${wd}
+ExecStartPre=/usr/local/bin/cloudflared tunnel status ${name} || exit 1
+ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # 启用并启动Systemd服务
+  systemctl daemon-reload
+  systemctl start cloudflared-${name}.service
+  systemctl enable cloudflared-${name}.service
+
+  echo "Cloudflare隧道和V2Ray反向代理已成功配置，并设置为开机启动。"
+}
 
 # 删除Cloudflare隧道和与之关联的systemd服务
 uninstall_cloudflared() {
@@ -169,14 +234,16 @@ menu() {
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
-    echo "3. 删除Cloudflared(隧道)"
+    echo "3. 配置V2ray(隧道)"
+    echo "4. 删除Cloudflared(隧道)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
-      3) uninstall_cloudflared;;
+      3) config_v2ray;;
+      4) uninstall_cloudflared;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
