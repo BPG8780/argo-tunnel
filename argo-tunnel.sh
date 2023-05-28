@@ -273,7 +273,7 @@ menu() {
     echo "2. 配置Cloudflared(隧道)"
     echo "3. Cloudflare反代(V2ray)"
     echo "4. 删除Cloudflared(隧道)"
-    echo "4. 分离Cloudflared(证书)"
+    echo "5. 分离Cloudflared(证书)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
