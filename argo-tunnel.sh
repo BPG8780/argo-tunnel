@@ -95,6 +95,8 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+CPUQuota=30%
+MemoryLimit=512M
 Restart=always
 
 [Install]
@@ -107,97 +109,6 @@ EOF
   systemctl enable cloudflared-${name}.service
 
   echo "Cloudflare 隧道已成功配置，并设置为开机启动。"
-}
-# 配置 Cloudflare 隧道的函数
-config_v2ray() {
-  # 检查Linux发行版并安装Nginx
-  if [[ -n "$(command -v apt-get)" ]]; then
-    # Debian/Ubuntu
-    if ! command -v nginx &> /dev/null; then
-      echo "Nginx不存在，正在安装..."
-      sudo apt-get update
-      sudo apt-get install nginx
-    fi
-  elif [[ -n "$(command -v yum)" ]]; then
-    # CentOS/Fedora/RHEL
-    if ! command -v nginx &> /dev/null; then
-      echo "Nginx不存在，正在安装..."
-      sudo yum install nginx
-    fi
-  else
-    echo "不支持该Linux发行版"
-    exit
-  fi
-
-  read -p "请输入需要创建的隧道名称：" name
-  cloudflared tunnel create ${name}
-  read -p "请输入域名：" domain
-  cloudflared tunnel route dns ${name} ${domain}
-  cloudflared tunnel list
-  uuid=$(cloudflared tunnel list | grep ${name} | sed -n 1p | awk '{print $1}')
-  read -p "请输入需要反代的服务端口[如不填写默认80]：" port
-  port=${port:-80}
-
-  # 创建Cloudflare隧道配置文件
-  cat > /root/${name}.yml <<EOF
-tunnel: ${name}
-credentials-file: /root/.cloudflared/${uuid}.json
-ingress:
-  - hostname: ${domain}
-    service: http://localhost:${port}
-    originRequest:
-      connectTimeout: 30s
-      noTLSVerify: true
-EOF
-
-  echo "配置文件已经保存到：/root/${name}.yml"
-
-  # 创建Nginx配置文件
-  cat > /etc/nginx/conf.d/${domain}.conf <<EOF
-server {
-    listen 80;
-    server_name ${domain};
-
-    location / {
-        proxy_pass http://127.0.0.1:${port};
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-EOF
-
-  echo "Nginx配置文件已经保存到：/etc/nginx/conf.d/${domain}.conf"
-
-  # 启用并重启Nginx服务
-  systemctl enable nginx
-  systemctl restart nginx
-
-  # 创建Systemd服务
-  cat > /etc/systemd/system/cloudflared-${name}.service <<EOF
-[Unit]
-Description=Cloudflare Tunnel
-After=network.target
-
-[Service]
-Type=simple
-User=root
-Group=root
-WorkingDirectory=${wd}
-ExecStartPre=/usr/local/bin/cloudflared tunnel status ${name} || exit 1
-ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-  # 启用并启动Systemd服务
-  systemctl daemon-reload
-  systemctl start cloudflared-${name}.service
-  systemctl enable cloudflared-${name}.service
-
-  echo "Cloudflare隧道、Nginx和V2Ray反向代理已成功配置，并设置为开机启动。"
 }
 
 # 删除Cloudflare隧道和与之关联的systemd服务
@@ -271,18 +182,16 @@ menu() {
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
-    echo "3. Cloudflare反代(V2ray)"
-    echo "4. 删除Cloudflared(隧道)"
-    echo "5. 分离Cloudflared(证书)"
+    echo "3. 删除Cloudflared(隧道)"
+    echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
-      3) config_v2ray;;
-      4) uninstall_cloudflared;;
-      5) cert_Cloudflare;;
+      3) uninstall_cloudflared;;
+      4) cert_Cloudflare;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
