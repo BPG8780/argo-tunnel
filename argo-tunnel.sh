@@ -95,8 +95,6 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
-CPUQuota=30%
-MemoryLimit=512M
 Restart=always
 
 [Install]
@@ -148,17 +146,6 @@ uninstall_cloudflared() {
   cloudflared tunnel delete ${uuid}
   echo -e "${green}已成功删除隧道：${name}${reset}"
 }
-# 分离cert.pem
-cert_Cloudflare() {
-    # 分离私钥
-    sed -n "1, 5p" /root/.cloudflared/cert.pem > /root/private.key
-
-    # 分离证书
-    sed -n "6, 24p" /root/.cloudflared/cert.pem > /root/cert.crt
-
-    echo "已将私钥保存到/private.key文件中"
-    echo "已将证书保存到/cert.crt文件中"
-}
 
 # 检查系统架构
 check_arch() {
@@ -183,7 +170,6 @@ menu() {
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
-    echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
@@ -191,7 +177,6 @@ menu() {
       1) install_cloudflared;;
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
-      4) cert_Cloudflare;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
