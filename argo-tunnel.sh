@@ -162,42 +162,32 @@ cert_Cloudflare() {
 
 # 安装cpulimit和libcgroup-tools
 install_cpulimit_libcgroup() {
-# 检测Linux发行版
-if command -v apt-get &> /dev/null; then
-  # Debian/Ubuntu
-  sudo apt-get update
-  sudo apt-get install cpulimit libcgroup-tools -y
-elif command -v yum &> /dev/null; then
-  # CentOS/Fedora
-  sudo yum install epel-release -y
-  sudo yum update -y
-  sudo yum install cpulimit libcgroup-tools -y
-else
-  echo "不支持该Linux发行版"
-  exit 1
-fi
+# 创建cgroup
+sudo cgcreate -g cpu,memory:cloudflared_group
 
-# 获取cloudflared进程ID
+# 获取进程ID
 pid=$(pgrep cloudflared)
 
-# 如果没有找到进程，则退出脚本
-if [ -z "$pid" ]; then
-  echo "cloudflared进程不存在"
-  exit 1
-fi
+# 将进程添加到cgroup中
+sudo cgclassify -g cpu,memory:cloudflared_group $pid
 
 # 设置CPU和内存的限制为50%
 cpu_limit="50"
 mem_limit="50"
+num_cores=$(nproc --all)
+cpu_quota=$((num_cores * cpu_limit * 10000))
 
-# 使用cpulimit命令限制CPU使用量
-cpulimit -p $pid -l $cpu_limit &
+# 使用cgset命令限制CPU使用量
+sudo cgset -r cpu.cfs_quota_us=$cpu_quota cloudflared_group
 
-# 使用cgroups限制内存使用量
+# 使用cgset命令限制内存使用量
 mem_limit_bytes=$(echo "$mem_limit * 1024 * 1024" | bc)
-cgcreate -g memory:cloudflared
-echo "$mem_limit_bytes" > /sys/fs/cgroup/memory/cloudflared/memory.limit_in_bytes
-cgclassify -g memory:cloudflared $pid
+sudo cgset -r memory.limit_in_bytes=$mem_limit_bytes cloudflared_group
+
+# 检查设置是否生效
+echo "进程ID：$pid"
+echo "CPUQuota：$(sudo cat /sys/fs/cgroup/cpu,cpuacct/cloudflared_group/cpu.cfs_quota_us)"
+echo "MemoryLimit：$(sudo cat /sys/fs/cgroup/memory/cloudflared_group/memory.limit_in_bytes)"
 }
 
 # 检查系统架构
