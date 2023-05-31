@@ -95,6 +95,8 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+#CPUQuota=30%
+#MemoryLimit=512M
 Restart=always
 
 [Install]
@@ -146,6 +148,57 @@ uninstall_cloudflared() {
   cloudflared tunnel delete ${uuid}
   echo -e "${green}已成功删除隧道：${name}${reset}"
 }
+# 分离cert.pem
+cert_Cloudflare() {
+    # 分离私钥
+    sed -n "1, 5p" /root/.cloudflared/cert.pem > /root/private.key
+
+    # 分离证书
+    sed -n "6, 24p" /root/.cloudflared/cert.pem > /root/cert.crt
+
+    echo "已将私钥保存到/private.key文件中"
+    echo "已将证书保存到/cert.crt文件中"
+}
+
+# 安装cpulimit和libcgroup-tools
+install_cpulimit_libcgroup() {
+# 检测Linux发行版
+if command -v apt-get &> /dev/null; then
+  # Debian/Ubuntu
+  sudo apt-get update
+  sudo apt-get install cpulimit libcgroup-tools -y
+elif command -v yum &> /dev/null; then
+  # CentOS/Fedora
+  sudo yum install epel-release -y
+  sudo yum update -y
+  sudo yum install cpulimit libcgroup-tools -y
+else
+  echo "不支持该Linux发行版"
+  exit 1
+fi
+
+# 获取cloudflared进程ID
+pid=$(pgrep cloudflared)
+
+# 如果没有找到进程，则退出脚本
+if [ -z "$pid" ]; then
+  echo "cloudflared进程不存在"
+  exit 1
+fi
+
+# 设置CPU和内存的限制为50%
+cpu_limit="50"
+mem_limit="50"
+
+# 使用cpulimit命令限制CPU使用量
+cpulimit -p $pid -l $cpu_limit &
+
+# 使用cgroups限制内存使用量
+mem_limit_bytes=$(echo "$mem_limit * 1024 * 1024" | bc)
+cgcreate -g memory:cloudflared
+echo "$mem_limit_bytes" > /sys/fs/cgroup/memory/cloudflared/memory.limit_in_bytes
+cgclassify -g memory:cloudflared $pid
+}
 
 # 检查系统架构
 check_arch() {
@@ -170,6 +223,8 @@ menu() {
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
+    echo "4. 分离Cloudflared(证书)"
+    echo "5. 限制Cloudflared(进程)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
@@ -177,6 +232,8 @@ menu() {
       1) install_cloudflared;;
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
+      4) cert_Cloudflare;;
+      5) install_cpulimit_libcgroup;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
