@@ -161,7 +161,12 @@ cert_Cloudflare() {
 }
 
 # 安装cpulimit和libcgroup-tools
-install_cpulimit_libcgroup() {
+install_Cloudflared_group() {
+  # 要求用户输入 CPU 和内存限制的值
+  read -p "请输入CPU限制百分比: " CPU
+  read -p "请输入内存限制百分比: " MEM
+
+cat > /root/Cloudflared_group.sh <<EOF
 # 创建cgroup
 sudo cgcreate -g cpu,memory:cloudflared_group
 
@@ -172,8 +177,8 @@ pid=$(pgrep cloudflared)
 sudo cgclassify -g cpu,memory:cloudflared_group $pid
 
 # 设置CPU和内存的限制为50%
-cpu_limit="50"
-mem_limit="50"
+cpu_limit="${CPU}"
+mem_limit="${MEM}"
 num_cores=$(nproc --all)
 cpu_quota=$((num_cores * cpu_limit * 10000))
 
@@ -183,11 +188,7 @@ sudo cgset -r cpu.cfs_quota_us=$cpu_quota cloudflared_group
 # 使用cgset命令限制内存使用量
 mem_limit_bytes=$(echo "$mem_limit * 1024 * 1024" | bc)
 sudo cgset -r memory.limit_in_bytes=$mem_limit_bytes cloudflared_group
-
-# 检查设置是否生效
-echo "进程ID：$pid"
-echo "CPUQuota：$(sudo cat /sys/fs/cgroup/cpu,cpuacct/cloudflared_group/cpu.cfs_quota_us)"
-echo "MemoryLimit：$(sudo cat /sys/fs/cgroup/memory/cloudflared_group/memory.limit_in_bytes)"
+EOF
 }
 
 # 检查系统架构
@@ -223,7 +224,7 @@ menu() {
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
       4) cert_Cloudflare;;
-      5) install_cpulimit_libcgroup;;
+      5) install_Cloudflared_group;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
