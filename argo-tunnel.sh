@@ -45,6 +45,19 @@ install_cloudflared() {
     cloudflared tunnel login
   fi
 }
+# 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
+check_sysctl_udp_buffer_size() {
+  old_size=$(sudo sysctl net.core.rmem_max | awk '{print $3}')
+  if [ ${old_size} -lt 2500000 ]; then
+    new_size=2500000
+    sudo sysctl -w net.core.rmem_max=${new_size}
+    echo "net.core.rmem_max=${new_size}" | sudo tee /etc/sysctl.d/60-cloudflared-rmem.conf > /dev/null
+    sudo sysctl --system
+    echo "已将系统的 UDP 缓冲区大小更新为：${new_size}"
+  else
+    echo "当前系统的 UDP 缓冲区大小为：${old_size}"
+  fi
+}
 # 配置 Cloudflare 隧道的函数
 config_cloudflared() {
   read -p "请输入需要创建的隧道名称：" name
@@ -68,6 +81,7 @@ config_cloudflared() {
   fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
+  check_sysctl_udp_buffer_size
   cat > /root/${name}.yml <<EOF
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
@@ -95,6 +109,8 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+#CPUQuota=30%
+#MemoryLimit=512M
 Restart=always
 
 [Install]
@@ -146,6 +162,47 @@ uninstall_cloudflared() {
   cloudflared tunnel delete ${uuid}
   echo -e "${green}已成功删除隧道：${name}${reset}"
 }
+# 分离cert.pem
+cert_Cloudflare() {
+    # 分离私钥
+    sed -n "1, 5p" /root/.cloudflared/cert.pem > /root/private.key
+
+    # 分离证书
+    sed -n "6, 24p" /root/.cloudflared/cert.pem > /root/cert.crt
+
+    echo "已将私钥保存到/private.key文件中"
+    echo "已将证书保存到/cert.crt文件中"
+}
+
+# 安装cpulimit和libcgroup-tools
+install_Cloudflared_group() {
+# 创建cgroup
+sudo cgcreate -g cpu,memory:cloudflared_group
+
+# 获取进程ID
+pid=$(pgrep cloudflared)
+
+# 将进程添加到cgroup中
+sudo cgclassify -g cpu,memory:cloudflared_group $pid
+
+# 设置CPU和内存的限制为50%
+cpu_limit="50"
+mem_limit="50"
+num_cores=$(nproc --all)
+cpu_quota=$((num_cores * cpu_limit * 10000))
+
+# 使用cgset命令限制CPU使用量
+sudo cgset -r cpu.cfs_quota_us=$cpu_quota cloudflared_group
+
+# 使用cgset命令限制内存使用量
+mem_limit_bytes=$(echo "$mem_limit * 1024 * 1024" | bc)
+sudo cgset -r memory.limit_in_bytes=$mem_limit_bytes cloudflared_group
+
+# 检查设置是否生效
+echo "进程ID：$pid"
+echo "CPUQuota：$(sudo cat /sys/fs/cgroup/cpu,cpuacct/cloudflared_group/cpu.cfs_quota_us)"
+echo "MemoryLimit：$(sudo cat /sys/fs/cgroup/memory/cloudflared_group/memory.limit_in_bytes)"
+}
 
 # 检查系统架构
 check_arch() {
@@ -170,6 +227,8 @@ menu() {
     echo "1. 安装Cloudflared(登录)"
     echo "2. 配置Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
+    echo "4. 分离Cloudflared(证书)"
+    echo "5. 限制Cloudflared(进程)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
@@ -177,6 +236,8 @@ menu() {
       1) install_cloudflared;;
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
+      4) cert_Cloudflare;;
+      5) install_Cloudflared_group;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
