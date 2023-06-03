@@ -44,6 +44,25 @@ install_cloudflared() {
     echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
     cloudflared tunnel login
   fi
+  # 如果 cgroup-tools 未安装，请安装
+  if ! command -v cgcreate >/dev/null 2>&1; then
+    echo -e "${yellow}cgroup-tools 未安装，正在安装...${reset}"
+    os_type=$(awk -F= '/^ID/{print $2}' /etc/os-release | tr -d '"')
+
+    # 根据发行版类型安装 cgroup-tools
+    case "${os_type}" in
+      "ubuntu" | "debian")
+        sudo apt-get update && sudo apt-get install -y cgroup-tools
+        ;;
+      "centos" | "rhel" | "fedora")
+        sudo yum install -y libcgroup-tools
+        ;;
+      *)
+        echo "不支持的 Linux 发行版。请手动安装 cgroup-tools。"
+        return 1
+        ;;
+    esac
+  fi
 }
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
 check_sysctl_udp_buffer_size() {
