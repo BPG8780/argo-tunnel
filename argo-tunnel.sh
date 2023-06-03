@@ -58,6 +58,7 @@ check_sysctl_udp_buffer_size() {
     echo "当前系统的 UDP 缓冲区大小为：${old_size}"
   fi
 }
+
 # 配置 Cloudflare 隧道的函数
 config_cloudflared() {
   read -p "请输入需要创建的隧道名称：" name
@@ -66,7 +67,7 @@ config_cloudflared() {
   cloudflared tunnel route dns ${name} ${domain}
   cloudflared tunnel list
   uuid=$(cloudflared tunnel list | grep ${name} | sed -n 1p | awk '{print $1}')
-  read -p "请输入传输协议[如不填写默认quic]：" protocol
+  read -p "请输入协议(quic/http2/h2mux)默认quic：" protocol
   protocol=${protocol:-quic}
   read -p "服务是否运行在 Docker 容器中？[y/N]：" is_docker
   if [[ ${is_docker} == [Yy] ]]; then
@@ -86,17 +87,26 @@ config_cloudflared() {
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
 protocol: ${protocol}
-originRequest:
-  connectTimeout: 30s
-  noTLSVerify: true
 ingress:
   - hostname: ${domain}
     service: http://${ipadr}:${port}
   - service: http_status:404
+originRequest:
+  connectTimeout: 30s
+  noTLSVerify: true
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
-
+  
+  # 创建slice并设置资源限制
+  cat > /etc/systemd/system/cpu-mem-limits.slice <<EOF
+[Slice]
+CPUAccounting=true
+MemoryAccounting=true
+CPUQuota=20%
+MemoryLimit=512M
+EOF
+  
   # 创建 systemd 服务
   cat > /etc/systemd/system/cloudflared-${name}.service <<EOF
 [Unit]
@@ -109,12 +119,11 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
-#CPUQuota=30%
-#MemoryLimit=512M
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
+Slice=cpu-mem-limits.slice
 EOF
 
   # 启用并启动 systemd 服务
@@ -222,10 +231,10 @@ check_arch() {
 menu() {
   while true; do
     echo ""
-    echo -e "${green}Cloudflared隧道安装程序${reset}"
+    echo -e "${green}Cloudflared-Argo隧道安装程序${reset}"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
-    echo "2. 配置Cloudflared(隧道)"
+    echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "5. 限制Cloudflared(进程)"
