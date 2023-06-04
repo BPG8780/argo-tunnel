@@ -101,7 +101,10 @@ config_cloudflared() {
   fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
-  check_sysctl_udp_buffer_size
+  # 如果使用 QUIC 协议，则调用 check_sysctl_udp_buffer_size 函数
+  if [[ ${protocol} == "quic" ]]; then
+    check_sysctl_udp_buffer_size
+  fi
   cat > /root/${name}.yml <<EOF
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
@@ -116,16 +119,7 @@ originRequest:
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
-  
-  # 创建slice并设置资源限制
-  cat > /etc/systemd/system/cpu-mem-limits.slice <<EOF
-[Slice]
-CPUAccounting=true
-MemoryAccounting=true
-CPUQuota=20%
-MemoryLimit=512M
-EOF
-  
+
   # 创建 systemd 服务
   cat > /etc/systemd/system/cloudflared-${name}.service <<EOF
 [Unit]
@@ -138,6 +132,8 @@ User=root
 Group=root
 WorkingDirectory=${wd}
 ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
+CPUQuota=20%
+MemoryLimit=512M
 Restart=always
 
 [Install]
@@ -202,36 +198,6 @@ cert_Cloudflare() {
     echo "已将证书保存到/cert.crt文件中"
 }
 
-# 安装cpulimit和libcgroup-tools
-install_Cloudflared_group() {
-# 创建cgroup
-sudo cgcreate -g cpu,memory:cloudflared_group
-
-# 获取进程ID
-pid=$(pgrep cloudflared)
-
-# 将进程添加到cgroup中
-sudo cgclassify -g cpu,memory:cloudflared_group $pid
-
-# 设置CPU和内存的限制为50%
-cpu_limit="50"
-mem_limit="50"
-num_cores=$(nproc --all)
-cpu_quota=$((num_cores * cpu_limit * 10000))
-
-# 使用cgset命令限制CPU使用量
-sudo cgset -r cpu.cfs_quota_us=$cpu_quota cloudflared_group
-
-# 使用cgset命令限制内存使用量
-mem_limit_bytes=$(echo "$mem_limit * 1024 * 1024" | bc)
-sudo cgset -r memory.limit_in_bytes=$mem_limit_bytes cloudflared_group
-
-# 检查设置是否生效
-echo "进程ID：$pid"
-echo "CPUQuota：$(sudo cat /sys/fs/cgroup/cpu,cpuacct/cloudflared_group/cpu.cfs_quota_us)"
-echo "MemoryLimit：$(sudo cat /sys/fs/cgroup/memory/cloudflared_group/memory.limit_in_bytes)"
-}
-
 # 检查系统架构
 check_arch() {
   arch=$(uname -m)
@@ -256,7 +222,6 @@ menu() {
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
-    echo "5. 限制Cloudflared(进程)"
     echo "0. 退出"
     echo ""
     read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
@@ -265,7 +230,6 @@ menu() {
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
       4) cert_Cloudflare;;
-      5) install_Cloudflared_group;;
       0) exit;;
       *) echo -e "${red}无效的选项${reset}";;
     esac
