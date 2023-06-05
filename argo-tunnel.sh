@@ -42,24 +42,20 @@ fi
 install_cloudflared() {
   # 检查系统架构
   check_arch
-  echo -e "${green}正在检查Cloudflared版本...${reset}"
-  # 如果没有安装最新版本的 Cloudflared，则下载并安装它
-  if ! cloudflared update check &> /dev/null; then
-    echo -e "${yellow}您尚未安装最新版本的Cloudflared！${reset}"
-    if ! cloudflared update; then
-      echo -e "${red}无法更新Cloudflared！${reset}"
-      exit 1
-    fi
-    echo -e "${green}已成功更新到最新版！${reset}"
-  else
-    echo -e "${green}您已安装了最新版本的 Cloudflared！${reset}"
+  
+  if [ -f /usr/local/bin/cloudflared ]; then
+    echo -e "${green}已经找到 Cloudflared！${reset}"
+    return
   fi
+  
+  echo -e "${yellow}未找到 Cloudflared 的安装文件，正在下载最新版本...${reset}"
 
-  echo -e "${green}正在下载适用于 $arch 的Cloudflared...${reset}"
-  # 下载Cloudflared
+  # 下载 Cloudflared
   wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
   chmod +x /usr/local/bin/cloudflared
-  echo -e "${green}已将Cloudflared下载到/usr/local/bin/cloudflared${reset}"
+
+  # 安装 Cloudflared
+  echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/cloudflared${reset}"
 
   # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
   if [ ! -f /root/.cloudflared/cert.pem ]; then
