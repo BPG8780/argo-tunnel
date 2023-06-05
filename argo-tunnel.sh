@@ -38,6 +38,24 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
     fi
 fi
 
+# 检查Cloudflared是否最新版本的函数
+check_cloudflared_version() {
+    # 获取当前已安装的Cloudflared版本
+    installed_version=$(cloudflared --version | cut -d " " -f 2)
+    # 从GitHub API获取最新版本的标记信息
+    latest_version=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep tag_name | cut -d '"' -f 4)
+
+    # 如果当前安装的版本不是最新版本，则提示用户更新
+    if [[ $installed_version != $latest_version ]]; then
+        echo "Cloudflared不是最新版本。最新版本为：$latest_version"
+        read -p "是否要安装最新版本？（y/n）" choice
+        if [[ $choice == "y" ]]; then
+            install_cloudflared # 调用安装最新版本的函数
+        fi
+    else
+        echo "Cloudflared已经是最新版本。"
+    fi
+}
 install_cloudflared() {
   # 检查系统架构
   check_arch
@@ -66,6 +84,7 @@ install_cloudflared() {
 
   # 如果已经准备就绪，则显示成功消息
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
+    check_cloudflared_version
 }
 
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
@@ -189,6 +208,13 @@ uninstall_cloudflared() {
   # 删除隧道
   cloudflared tunnel delete ${uuid}
   echo -e "${green}已成功删除隧道：${name}${reset}"
+  
+  # 删除与隧道关联的 yml 配置文件
+  yml_file="/root/${name}.yml"
+  if [[ -f ${yml_file} ]]; then
+    sudo rm -f ${yml_file}
+    echo -e "${green}已删除隧道 ${name} 的 yml 文件${reset}"
+  fi
 }
 # 分离cert.pem
 cert_Cloudflare() {
@@ -221,16 +247,16 @@ check_arch() {
 # 显示菜单并提示用户进行选择
 menu() {
   while true; do
-    echo -e "${green}----------------------${reset}"
-    echo -e "${green}Cloudflared～隧道安装程序${reset}"
-    echo -e "${green}----------------------${reset}"
-    echo -e "${yellow}1. 安装Cloudflared(登录)${reset}"
-    echo -e "${yellow}2. 创建Cloudflared(隧道)${reset}"
-    echo -e "${yellow}3. 删除Cloudflared(隧道)${reset}"
-    echo -e "${yellow}4. 分离Cloudflared(证书)${reset}"
-    echo -e "${yellow}0. 退出${reset}"
     echo ""
-    read -p "$(echo -e ${red}请输入选项号:${reset}) " choice
+    echo -e "${yellow}Cloudflared-Argo隧道安装程序${reset}"
+    echo "----------------------"
+    echo "1. 安装Cloudflared(登录)"
+    echo "2. 创建Cloudflared(隧道)"
+    echo "3. 删除Cloudflared(隧道)"
+    echo "4. 分离Cloudflared(证书)"
+    echo "0. 退出"
+    echo ""
+    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
