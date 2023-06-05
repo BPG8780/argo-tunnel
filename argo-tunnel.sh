@@ -43,29 +43,29 @@ install_cloudflared() {
   check_arch
 
   if [ -f /usr/local/bin/cloudflared ]; then
-    echo -e "${green}已经找安装Cloudflared！${reset}"
+    echo -e "${green}已安装Cloudflared隧道${reset}"
     # 如果证书文件不存在，则登录 Cloudflare 服务
     if [ ! -f /root/.cloudflared/cert.pem ]; then
-      echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，请登录 Cloudflare 服务...${reset}"
+      echo -e "${yellow}未检测到证书，请登录Cloudflare隧道服务...${reset}"
       cloudflared tunnel login
     fi
   else
-    echo -e "${yellow}未找到 Cloudflared 的安装文件，正在下载最新版本...${reset}"
+    echo -e "${yellow}未安装Cloudflared隧道，正在下载最新版本...${reset}"
 
     # 下载 Cloudflared
     wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
     chmod +x /usr/local/bin/cloudflared
 
     # 安装 Cloudflared
-    echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/目录下${reset}"
+    echo -e "${green}已将Cloudflared隧道安装到/usr/local/bin/目录下${reset}"
 
     # 登录 Cloudflare 服务
-    echo -e "${yellow}请登录 Cloudflare 服务...${reset}"
+    echo -e "${yellow}请登录Cloudflare隧道...${reset}"
     cloudflared tunnel login
   fi
 
   # 如果已经准备就绪，则显示成功消息
-  echo -e "${green}Cloudflared 和 Cloudflare tunnels 服务已准备就绪！${reset}"
+  echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
 }
 
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
@@ -222,7 +222,7 @@ check_arch() {
 menu() {
   while true; do
     echo ""
-    echo -e "${green}Cloudflared-Argo隧道安装程序${reset}"
+    echo -e "${yellow}Cloudflared-Argo隧道安装程序${reset}"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
@@ -230,7 +230,7 @@ menu() {
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
     echo ""
-    read -p "$(echo -e ${yellow}请输入选项号:${reset}) " choice
+    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
