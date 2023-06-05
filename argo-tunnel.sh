@@ -13,6 +13,38 @@ then
   exit
 fi
 
+# 检测cgroup-tools是否已安装
+if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
+    echo "未安装 cgroup-tools 正在安装..."
+
+    # 检查/etc/os-release文件是否存在
+    if [[ -f /etc/os-release ]]; then
+        # 读取/etc/os-release文件中ID_LIKE的值
+        id_like=$(grep ID_LIKE /etc/os-release | cut -d= -f2-)
+
+        # 根据ID_LIKE的值安装cgroup-tools
+        if [[ $id_like == *"debian"* ]]; then
+            # Debian 或 Ubuntu
+            sudo apt-get update
+            sudo apt-get install cgroup-tools
+        elif [[ $id_like == *"rhel fedora"* ]]; then
+            # RHEL 或 Fedora
+            sudo yum install -y epel-release
+            sudo yum install -y cgroup-tools
+        else
+            # 不支持的Linux发行版
+            echo "不支持的Linux发行版，请自行安装cgroup-tools"
+            exit 1
+        fi
+    else
+        echo "/etc/os-release文件不存在于此系统。"
+        exit 1
+    fi
+
+else
+    echo "cgroup-tools已经安装。"
+fi
+
 # 检查并安装最新版本的Cloudflared
 install_cloudflared() {
   # 获取最新版本信息
@@ -44,26 +76,8 @@ install_cloudflared() {
     echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
     cloudflared tunnel login
   fi
-  # 如果 cgroup-tools 未安装，请安装
-  if ! command -v cgcreate >/dev/null 2>&1; then
-    echo -e "${yellow}cgroup-tools 未安装，正在安装...${reset}"
-    os_type=$(awk -F= '/^ID/{print $2}' /etc/os-release | tr -d '"')
-
-    # 根据发行版类型安装 cgroup-tools
-    case "${os_type}" in
-      "ubuntu" | "debian")
-        sudo apt-get update && sudo apt-get install -y cgroup-tools
-        ;;
-      "centos" | "rhel" | "fedora")
-        sudo yum install -y libcgroup-tools
-        ;;
-      *)
-        echo "不支持的 Linux 发行版。请手动安装 cgroup-tools。"
-        return 1
-        ;;
-    esac
-  fi
 }
+
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
 check_sysctl_udp_buffer_size() {
   old_size=$(sudo sysctl net.core.rmem_max | awk '{print $3}')
