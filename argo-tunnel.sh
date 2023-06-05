@@ -37,36 +37,30 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
         echo "/etc/os-release文件不存在于此系统。无法确定Linux发行版。"
     fi
 
-else
-    echo -e "\033[32mcgroup-tools已经安装。\033[0m"
 fi
 
-# 检查并安装最新版本的Cloudflared
 install_cloudflared() {
-  # 获取最新版本信息
-  latest_version=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep tag_name | cut -d '"' -f 4)
-  installed_version=$(cloudflared --version | cut -d " " -f 2)
-  echo -e "${green}已安装的Cloudflared版本是：${reset}$installed_version"
-  echo -e "${green}最新的Cloudflared版本是：${reset}$latest_version"
-
-  # 如果已经安装的版本不是最新的，则提示更新
-  if [ "$latest_version" != "$installed_version" ]; then
-    # 提示确认更新
-    read -p "$(echo -e ${yellow}是否更新到最新版本？ [y/n]${reset}) " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-      # 检查系统架构
-      check_arch
-      echo -e "${green}正在下载适用于 $arch 的Cloudflared...${reset}"
-      # 下载Cloudflared
-      wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
-      chmod +x /usr/local/bin/cloudflared
-      echo -e "${green}已将Cloudflared安装到/usr/local/bin/cloudflared${reset}"
+  # 检查系统架构
+  check_arch
+  echo -e "${green}正在检查Cloudflared版本...${reset}"
+  # 如果没有安装最新版本的 Cloudflared，则下载并安装它
+  if ! cloudflared update check &> /dev/null; then
+    echo -e "${yellow}您尚未安装最新版本的Cloudflared！${reset}"
+    if ! cloudflared update; then
+      echo -e "${red}无法更新Cloudflared！${reset}"
+      exit 1
     fi
+    echo -e "${green}已成功更新到最新版！${reset}"
   else
-    echo -e "${green}您已经安装了最新版本的Cloudflared${reset}"
+    echo -e "${green}您已安装了最新版本的 Cloudflared！${reset}"
   fi
+
+  echo -e "${green}正在下载适用于 $arch 的Cloudflared...${reset}"
+  # 下载Cloudflared
+  wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
+  chmod +x /usr/local/bin/cloudflared
+  echo -e "${green}已将Cloudflared下载到/usr/local/bin/cloudflared${reset}"
+
   # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
   if [ ! -f /root/.cloudflared/cert.pem ]; then
     echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
@@ -215,6 +209,8 @@ check_arch() {
     x86_64) arch="amd64" ;;
     armv7l) arch="armv7" ;;
     aarch64) arch="arm64" ;;
+    i386) arch="386" ;;
+    armv6l) arch="armhf" ;;
     *)
       echo -e "${red}不支持的系统架构${reset}"
       exit 1
