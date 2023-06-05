@@ -44,23 +44,23 @@ install_cloudflared() {
   
   if [ -f /usr/local/bin/cloudflared ]; then
     echo -e "${green}已经找到 Cloudflared！${reset}"
-    return
+  else
+    echo -e "${yellow}未找到 Cloudflared 的安装文件，正在下载最新版本...${reset}"
+
+    # 下载 Cloudflared
+    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
+    chmod +x /usr/local/bin/cloudflared
+
+    # 安装 Cloudflared
+    echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/目录下${reset}"
   fi
-  
-  echo -e "${yellow}未找到 Cloudflared 的安装文件，正在下载最新版本...${reset}"
 
-  # 下载 Cloudflared
-  wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
-  chmod +x /usr/local/bin/cloudflared
-
-  # 安装 Cloudflared
-  echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/目录下${reset}"
-
-# 检查是否已登录到 Cloudflare tunnels 服务
   # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
   if [ ! -f /root/.cloudflared/cert.pem ]; then
     echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
     $(cloudflared tunnel login)
+  else
+    echo -e "${green}Cloudflared 已成功安装，请登录到 Cloudflare tunnels 服务！${reset}"
   fi
 }
 
