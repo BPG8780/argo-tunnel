@@ -38,24 +38,6 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
     fi
 fi
 
-# 检查Cloudflared是否最新版本的函数
-check_cloudflared_version() {
-    # 获取当前已安装的Cloudflared版本
-    installed_version=$(cloudflared --version | cut -d " " -f 2)
-    # 从GitHub API获取最新版本的标记信息
-    latest_version=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep tag_name | cut -d '"' -f 4)
-
-    # 如果当前安装的版本不是最新版本，则提示用户更新
-    if [[ $installed_version != $latest_version ]]; then
-        echo "Cloudflared不是最新版本。最新版本为：$latest_version"
-        read -p "是否要安装最新版本？（y/n）" choice
-        if [[ $choice == "y" ]]; then
-            install_cloudflared # 调用安装最新版本的函数
-        fi
-    else
-        echo "Cloudflared已经是最新版本。"
-    fi
-}
 install_cloudflared() {
   # 检查系统架构
   check_arch
@@ -84,7 +66,6 @@ install_cloudflared() {
 
   # 如果已经准备就绪，则显示成功消息
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
-    check_cloudflared_version
 }
 
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
