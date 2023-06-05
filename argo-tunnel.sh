@@ -55,12 +55,13 @@ install_cloudflared() {
   chmod +x /usr/local/bin/cloudflared
 
   # 安装 Cloudflared
-  echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/cloudflared${reset}"
+  echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/目录下${reset}"
 
   # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
-  if [ ! -f /root/.cloudflared/cert.pem ]; then
-    echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
-    cloudflared tunnel login
+if [ ! -f /root/.cloudflared/cert.pem ]; then
+  echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
+  output=$(cloudflared tunnel login 2>&1)
+  echo -e "${yellow}${output}${reset}"
   fi
 }
 
