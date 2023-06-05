@@ -43,12 +43,11 @@ install_cloudflared() {
   check_arch
 
   if [ -f /usr/local/bin/cloudflared ]; then
-    echo -e "${green}已经找到 Cloudflared！${reset}"
+    echo -e "${green}已经找安装Cloudflared！${reset}"
     # 如果证书文件不存在，则登录 Cloudflare 服务
     if [ ! -f /root/.cloudflared/cert.pem ]; then
       echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，请登录 Cloudflare 服务...${reset}"
-      echo -e "请在浏览器中打开以下链接并使用 Cloudflare 帐户进行登录：\n$(cloudflared tunnel login)"
-      read -p "完成登录后，请按 Enter 键继续..."
+      cloudflared tunnel login
     fi
   else
     echo -e "${yellow}未找到 Cloudflared 的安装文件，正在下载最新版本...${reset}"
@@ -62,8 +61,7 @@ install_cloudflared() {
 
     # 登录 Cloudflare 服务
     echo -e "${yellow}请登录 Cloudflare 服务...${reset}"
-    echo -e "请在浏览器中打开以下链接并使用 Cloudflare 帐户进行登录：\n$(cloudflared tunnel login)"
-    read -p "完成登录后，请按 Enter 键继续..."
+    cloudflared tunnel login
   fi
 
   # 如果已经准备就绪，则显示成功消息
