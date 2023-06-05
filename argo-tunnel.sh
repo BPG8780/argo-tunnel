@@ -221,16 +221,16 @@ check_arch() {
 # 显示菜单并提示用户进行选择
 menu() {
   while true; do
+    echo -e "${green}----------------------${reset}"
+    echo -e "${green}Cloudflared～隧道安装程序${reset}"
+    echo -e "${green}----------------------${reset}"
+    echo -e "${yellow}1. 安装Cloudflared(登录)${reset}"
+    echo -e "${yellow}2. 创建Cloudflared(隧道)${reset}"
+    echo -e "${yellow}3. 删除Cloudflared(隧道)${reset}"
+    echo -e "${yellow}4. 分离Cloudflared(证书)${reset}"
+    echo -e "${yellow}0. 退出${reset}"
     echo ""
-    echo -e "${yellow}Cloudflared-Argo隧道安装程序${reset}"
-    echo "----------------------"
-    echo "1. 安装Cloudflared(登录)"
-    echo "2. 创建Cloudflared(隧道)"
-    echo "3. 删除Cloudflared(隧道)"
-    echo "4. 分离Cloudflared(证书)"
-    echo "0. 退出"
-    echo ""
-    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
+    read -p "$(echo -e ${red}请输入选项号:${reset}) " choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
