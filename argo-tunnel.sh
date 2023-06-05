@@ -61,8 +61,8 @@ install_cloudflared() {
 if [ ! -f /root/.cloudflared/cert.pem ]; then
   echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
   output=$(cloudflared tunnel login 2>&1)
-  echo -e "${yellow}${output}${reset}"
-  fi
+  set -x; echo -e "${yellow}${output}${reset}"
+fi
 }
 
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
