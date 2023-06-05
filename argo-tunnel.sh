@@ -7,15 +7,13 @@ red='\e[31m'
 reset='\e[0m'
 
 # 检查用户是否为root用户
-if [ "$EUID" -ne 0 ]
-then 
-  echo -e "${red}请使用root权限运行${reset}"
+if [ "$EUID" -ne 0 ]; then 
+  echo -e "\033[31m请使用root权限运行\033[0m"
   exit
 fi
 
 # 检测cgroup-tools是否已安装
 if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
-    echo "未安装 cgroup-tools 正在安装..."
 
     # 检查/etc/os-release文件是否存在
     if [[ -f /etc/os-release ]]; then
@@ -33,16 +31,14 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
             sudo yum install -y cgroup-tools
         else
             # 不支持的Linux发行版
-            echo "不支持的Linux发行版，请自行安装cgroup-tools"
-            exit 1
+            echo -e "\033[31m警告：不支持当前系统的Linux发行版，跳过安装cgroup-tools\033[0m"
         fi
     else
-        echo "/etc/os-release文件不存在于此系统。"
-        exit 1
+        echo "/etc/os-release文件不存在于此系统。无法确定Linux发行版。"
     fi
 
 else
-    echo "cgroup-tools已经安装。"
+    echo -e "\033[32mcgroup-tools已经安装。\033[0m"
 fi
 
 # 检查并安装最新版本的Cloudflared
