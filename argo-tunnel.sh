@@ -36,7 +36,6 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
     else
         echo "/etc/os-release文件不存在于此系统。无法确定Linux发行版。"
     fi
-
 fi
 
 install_cloudflared() {
@@ -57,15 +56,12 @@ install_cloudflared() {
   # 安装 Cloudflared
   echo -e "${green}已将 Cloudflared 安装到/usr/local/bin/目录下${reset}"
 
-  # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
 # 检查是否已登录到 Cloudflare tunnels 服务
-if [ ! -f /root/.cloudflared/cert.pem ]; then
-  echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
-  echo -e "请在浏览器中打开以下链接并使用 Cloudflare 帐户进行登录：\n$(cloudflared tunnel login)"
-fi
-
-# 如果已经准备就绪，则显示成功消息
-echo -e "${green}Cloudflared 和 Cloudflare tunnels 服务已准备就绪！${reset}"
+  # 检查证书文件是否存在，不存在则登录 Cloudflare 服务
+  if [ ! -f /root/.cloudflared/cert.pem ]; then
+    echo -e "${yellow}/root/.cloudflared/cert.pem 文件不存在，正在登录 Cloudflare 服务...${reset}"
+    $(cloudflared tunnel login)
+  fi
 }
 
 # 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
