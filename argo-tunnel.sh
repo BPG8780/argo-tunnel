@@ -247,6 +247,7 @@ menu() {
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
+    echo ""
     echo "$status"
     echo ""
     read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
