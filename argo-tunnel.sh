@@ -239,16 +239,19 @@ check_arch() {
 # 显示菜单并提示用户进行选择
 menu() {
   while true; do
-    echo "#######################"
+    echo "==========================="
+    echo "==========================="
     echo -e "${yellow}Cloudflared隧道安装程序${reset}"
-    echo "#######################"
+    echo "==========================="
+    echo "==========================="
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
-    echo "#######################"
+    echo "==========================="
     echo "$status"
+    echo "==========================="
     echo ""
     read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
     case $choice in
