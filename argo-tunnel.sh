@@ -240,14 +240,14 @@ check_arch() {
 menu() {
   while true; do
     echo ""
-    echo -e "${yellow}Cloudflared-Argo隧道安装程序${reset}"
-    echo "$status"
+    echo -e "${yellow}Cloudflared隧道安装程序${reset}"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
+    echo "$status"
     echo ""
     read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
     case $choice in
