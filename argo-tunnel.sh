@@ -111,7 +111,20 @@ config_cloudflared() {
     wd=$(docker inspect ${container_name} --format='{{json .Mounts}}' | jq -r '.[].Source' | head -n 1)
   else
     read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
-    ipadr=${ipadr:-localhost}
+ipadr=${ipadr:-localhost}
+
+# 选择反代IPv6
+if $(command -v ping6 > /dev/null 2>&1); then
+    read -p "检测到您的系统支持IPv6，是否使用IPv6作为反代地址？[y/n]" use_ipv6
+    if [[ $use_ipv6 =~ ^[Yy]$ ]]; then
+        ipadr=$(ip addr show | grep "inet6.*scope link" | awk '{print $2}' | cut -d'/' -f1)
+        if [[ -n $ipadr ]]; then
+            echo "已选择本机的IPv6地址：$ipadr"
+        else
+            echo "未找到本机的IPv6地址。"
+        fi
+    fi
+fi
     wd=/usr/local/bin
   fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
