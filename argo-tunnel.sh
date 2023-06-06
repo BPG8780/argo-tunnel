@@ -111,20 +111,7 @@ config_cloudflared() {
     wd=$(docker inspect ${container_name} --format='{{json .Mounts}}' | jq -r '.[].Source' | head -n 1)
   else
     read -p "请输入需要反代的服务IP地址[不填默认为本机]：" ipadr
-ipadr=${ipadr:-localhost}
-
-# 选择反代IPv6
-if $(command -v ping6 > /dev/null 2>&1); then
-    read -p "检测到您的系统支持IPv6，是否使用IPv6作为反代地址？[y/n]" use_ipv6
-    if [[ $use_ipv6 =~ ^[Yy]$ ]]; then
-        ipadr=$(ip addr show | grep "inet6.*scope link" | awk '{print $2}' | cut -d'/' -f1)
-        if [[ -n $ipadr ]]; then
-            echo "已选择本机的IPv6地址：$ipadr"
-        else
-            echo "未找到本机的IPv6地址。"
-        fi
-    fi
-fi
+    ipadr=${ipadr:-localhost}
     wd=/usr/local/bin
   fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
@@ -248,41 +235,44 @@ check_arch() {
       ;;
   esac
 }
-
-# 显示菜单并提示用户进行选择
+# 显示菜单的函数
 menu() {
   while true; do
-    echo "==========================="
-    echo "==========================="
-    echo -e "${yellow}Cloudflared隧道安装程序${reset}"
-    echo "==========================="
-    echo "==========================="
+    clear
+    # 调用状态函数获取当前 Cloudflare 隧道的状态
+    status=$(get_status)
+    echo "======================================="
+    echo "            Cloudflare 隧道             "
+    echo "======================================="
+    echo "${status}"
+    echo "请选择一个操作："
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
-    echo "==========================="
-    echo "$status"
-    echo "==========================="
-    echo ""
-    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
-    case $choice in
-      1) install_cloudflared;;
-      2) config_cloudflared;;
-      3) uninstall_cloudflared;;
-      4) cert_Cloudflare;;
-      0) exit;;
-      *) echo -e "${red}无效的选项${reset}";;
+    read -p "请输入选项（0-4）：" option
+
+    case $option in
+      1)
+        install_cloudflared
+        ;;
+      2)
+        config_cloudflared
+        ;;
+      3)
+        uninstall_cloudflared
+        ;;
+      4)
+        cert_Cloudflare
+        ;;
+      0)
+        exit
+        ;;
+      *)
+        echo -e "${red}无效的选项，请重试！${reset}"
+        ;;
     esac
+    read -p "按回车键继续..." pause
   done
 }
-
-# 主程序入口
-main() {
-  # 显示菜单
-  menu
-}
-
-# 运行主程序
-main
