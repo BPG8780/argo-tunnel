@@ -241,9 +241,9 @@ menu() {
   while true; do
     clear
     # 调用状态函数获取当前 Cloudflare 隧道的状态
-    echo "======================================="
-    echo "            Cloudflare 隧道             "
-    echo "======================================="
+    echo "============================"
+    echo "        Cloudflare隧道             "
+    echo "============================"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
