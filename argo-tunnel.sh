@@ -235,7 +235,8 @@ check_arch() {
       ;;
   esac
 }
-# 显示菜单的函数
+
+# 显示菜单并提示用户进行选择
 menu() {
   while true; do
     clear
@@ -245,34 +246,32 @@ menu() {
     echo "            Cloudflare 隧道             "
     echo "======================================="
     echo "${status}"
-    echo "请选择一个操作："
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
-    read -p "请输入选项（0-4）：" option
-
-    case $option in
-      1)
-        install_cloudflared
-        ;;
-      2)
-        config_cloudflared
-        ;;
-      3)
-        uninstall_cloudflared
-        ;;
-      4)
-        cert_Cloudflare
-        ;;
-      0)
-        exit
-        ;;
-      *)
-        echo -e "${red}无效的选项，请重试！${reset}"
-        ;;
+    echo "==========================="
+    echo "$status"
+    echo "==========================="
+    echo ""
+    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
+    case $choice in
+      1) install_cloudflared;;
+      2) config_cloudflared;;
+      3) uninstall_cloudflared;;
+      4) cert_Cloudflare;;
+      0) exit;;
+      *) echo -e "${red}无效的选项${reset}";;
     esac
-    read -p "按回车键继续..." pause
   done
 }
+
+# 主程序入口
+main() {
+  # 显示菜单
+  menu
+}
+
+# 运行主程序
+main
