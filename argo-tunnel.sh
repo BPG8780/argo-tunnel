@@ -12,14 +12,15 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
+# 检测 Cloudflare Tunnel 状态，并存储到 $status 变量中
 if ps -Af | grep "cloudflared tunnel" | grep -v grep >/dev/null; then
-    status="Cloudflare Tunnel 状态：已登录"
-elif command -v cloudflared >/dev/null && [[ -f /root/.cloudflared/cert.pem ]]; then
-    status="Cloudflare Tunnel 状态：已安装，未登录"
+    status="Cloudflare隧道状态：已登录"
+elif sudo -u root bash -c 'command -v cloudflared >/dev/null && [[ -f /root/.cloudflared/cert.pem ]]'; then
+    status="Cloudflare隧道状态：已安装、已登录"
 elif command -v cloudflared >/dev/null; then
-    status="Cloudflare Tunnel 状态：已安装"
+    status="Cloudflare隧道状态：已安装"
 else
-    status="Cloudflare Tunnel 状态：未安装"
+    status="Cloudflare隧道状态：未安装"
 fi
 
 # 检测cgroup-tools是否已安装
