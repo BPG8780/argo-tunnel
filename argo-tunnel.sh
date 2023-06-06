@@ -13,7 +13,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 获取 Cloudflared 隧道版本号
-version=$(cloudflared tunnel --version | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+')
+version=$(cloudflared version)
 
 # 检测 Cloudflare Tunnel 状态，并存储到 $status 变量中
 if ps -Af | grep "cloudflared tunnel" | grep -v grep >/dev/null; then
@@ -252,7 +252,7 @@ menu() {
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
-    echo "Cloudflared隧道版本：${version}"
+    echo "隧道版本：${version}"
     echo "$status"
     echo ""
     read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
