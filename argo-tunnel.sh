@@ -12,6 +12,16 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
+if ps -Af | grep "cloudflared tunnel" | grep -v grep >/dev/null; then
+    status="Cloudflare Tunnel 状态：已登录"
+elif command -v cloudflared >/dev/null && [[ -f /root/.cloudflared/cert.pem ]]; then
+    status="Cloudflare Tunnel 状态：已安装，未登录"
+elif command -v cloudflared >/dev/null; then
+    status="Cloudflare Tunnel 状态：已安装"
+else
+    status="Cloudflare Tunnel 状态：未安装"
+fi
+
 # 检测cgroup-tools是否已安装
 if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
 
@@ -230,6 +240,7 @@ menu() {
   while true; do
     echo ""
     echo -e "${yellow}Cloudflared-Argo隧道安装程序${reset}"
+    echo "$status"
     echo "----------------------"
     echo "1. 安装Cloudflared(登录)"
     echo "2. 创建Cloudflared(隧道)"
