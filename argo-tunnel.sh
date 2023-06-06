@@ -11,19 +11,10 @@ if [ "$EUID" -ne 0 ]; then
   echo -e "\033[31m请使用root权限运行\033[0m"
   exit
 fi
-if ! command -v cloudflared &> /dev/null; then
-    echo "Cloudflared 未安装"
-    exit 1
-fi
 
 # 获取 Cloudflared 隧道版本号
 version=$(cloudflared tunnel --version | grep -Eo 'v[0-9]+\.[0-9]+\.[0-9]+')
 
-if [[ -n "$version" ]]; then
-  echo "Cloudflared 隧道版本号为 ${version}"
-else
-  echo "无法获取 Cloudflared 隧道版本号"
-fi
 # 检测 Cloudflare Tunnel 状态，并存储到 $status 变量中
 if ps -Af | grep "cloudflared tunnel" | grep -v grep >/dev/null; then
     status="Cloudflare隧道状态：已登录"
@@ -261,6 +252,7 @@ menu() {
     echo "3. 删除Cloudflared(隧道)"
     echo "4. 分离Cloudflared(证书)"
     echo "0. 退出"
+    echo "Cloudflared隧道版本：${version}"
     echo "$status"
     echo ""
     read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
