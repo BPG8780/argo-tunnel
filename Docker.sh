@@ -1,4 +1,9 @@
 #!/bin/bash
+# 定义控制台输出的颜色代码
+green='\033[32m'
+yellow='\033[33m'
+red='\033[31m'
+reset='\033[0m'
 # 检查用户是否为root用户
 if [ "$EUID" -ne 0 ]; then 
   echo -e "\033[31m请使用root权限运行\033[0m"
@@ -56,7 +61,9 @@ create_config() {
   fi
   read -p "请输入管理员ID：" admin
   if [[ ! $admin =~ ^[0-9,]+$ ]]; then
-    echo "无效的管理员ID
+    echo "无效的管理员ID"
+    return
+  fi
 cat > /opt/e5sub/config.yml <<EOF
 bot_token: $bot_token
 bindmax: $bindmax
