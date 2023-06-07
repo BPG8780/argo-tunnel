@@ -35,3 +35,17 @@ services:
       - ./e5sub/config.yml:/config.yml
       - ./e5sub/data.db:/data.db
 EOF
+cat >/opt/e5sub/config.yml <<EOF
+bot_token: 6082182707:AAE6ftjQPgeb7U6AHaYhhZM2JYuXzfP9ea0
+bindmax: 999
+goroutine: 20
+admin: 5577345143
+errlimit: 999
+notice: |-
+   粑屁
+cron: "1 */1 * * *"
+db: sqlite
+table: users
+sqlite:
+   db: data.db
+EOF   
