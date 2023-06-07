@@ -63,8 +63,9 @@ ExecStart=/usr/bin/python3 /root/cpumemory.py
 [Install]
 WantedBy=multi-user.target
 EOF
+  memorylimit=$(echo "$(nproc) * 0.1 * 1024 * 1024 * 1024" | bc)
   echo "import platform" > /root/cpumemory.py
-  echo "memory = bytearray(int($(($(nproc) * 0.1 * 1024 * 1024 * 1024))))" >> /root/cpumemory.py
+  echo "memory = bytearray(int(${memorylimit}))" >> /root/cpumemory.py
   echo "while True:" >> /root/cpumemory.py
   echo "  pass" >> /root/cpumemory.py
   systemctl daemon-reload
