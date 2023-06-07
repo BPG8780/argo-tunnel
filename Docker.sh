@@ -101,6 +101,7 @@ menu() {
       ;;
     2)
       cat /opt/e5sub/config.yml
+      menu
       ;;
     0)
       echo "感谢使用，再见！"
