@@ -132,4 +132,10 @@ menu() {
       exit 0
       ;;
     *)
-      echo "无效的选项，请重新选择
+      echo "无效的选项，请重新选择"
+      menu
+      ;;
+  esac
+}
+
+menu  
