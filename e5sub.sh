@@ -105,7 +105,7 @@ stop() {
 
 # 显示菜单并提示用户进行选择  
 menu() {
-  echo -e "\033[31m一键部署e5sub\033[0m"
+  echo -e "\033[32m一键部署e5sub\033[0m"
   echo "==请选择操作=="
   echo "1. 配置config"
   echo "2. 查看配置"
