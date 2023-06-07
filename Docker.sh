@@ -1,20 +1,18 @@
 #!/bin/bash
-# 定义控制台输出的颜色代码
-green='\033[32m'
-yellow='\033[33m'
-red='\033[31m'
-reset='\033[0m'
+
 # 检查用户是否为root用户
 if [ "$EUID" -ne 0 ]; then 
   echo -e "\033[31m请使用root权限运行\033[0m"
   exit
 fi
+
 # 检测 Docker 是否已安装
 if ! [ -x "$(command -v docker)" ]; then
   # 安装 Docker
   wget -qO- get.docker.com | bash
   systemctl enable docker
 fi
+
 # 检测 Docker Compose 是否已安装
 if ! [ -x "$(command -v docker-compose)" ]; then
   # 安装 Docker Compose
@@ -24,17 +22,20 @@ fi
 
 # 检查/opt/e5sub目录是否已经存在，如果不存在则创建该目录
 if [ ! -d "/opt/e5sub" ]; then
-    sudo mkdir -p /opt/e5sub
+  sudo mkdir -p /opt/e5sub
 fi
+
 # 进入/opt/e5sub目录
 cd /opt/e5sub
+
 # 检查data.db文件是否已经存在，如果不存在则创建该文件
 if [ ! -f "data.db" ]; then
-    sudo touch data.db
+  sudo touch data.db
 fi
+
 # 检查docker-compose.yml文件是否已经存在，如果不存在则创建该文件
 if [ ! -f "docker-compose.yml" ]; then
-    cat > docker-compose.yml << EOF
+  cat > docker-compose.yml << EOF
 version: '3.8'
 services:
   e5sub:
@@ -48,39 +49,46 @@ services:
       - ./data.db:/data.db
 EOF
 fi
+
 create_config() {
   read -p "请输入机器人的API：" bot_token
   if [[ ! $bot_token =~ ^[0-9]+:[a-zA-Z0-9_-]+$ ]]; then
     echo "无效的API，请提供有效的机器人API"
     return
   fi
+
   read -p "请输入绑定最大值：" bindmax
   if [[ ! $bindmax =~ ^[0-9]+$ ]]; then
     echo "无效的绑定最大值，请提供有效的数子"
     return
   fi
+
   read -p "请输入管理员ID：" admin
   if [[ ! $admin =~ ^[0-9,]+$ ]]; then
     echo "无效的管理员ID"
     return
   fi
-cat > /opt/e5sub/config.yml <<EOF
+
+  cat > /opt/e5sub/config.yml <<EOF
 bot_token: $bot_token
 bindmax: $bindmax
 goroutine: 20
 admin: $admin
 errlimit: 999
 notice: |-
-   aaa
-   bbb
-   ccc
+  aaa
+  bbb
+  ccc
 cron: "1 */1 * * *"
 db: sqlite
 table: users
 sqlite:
-   db: data.db
+  db: data.db
 EOF
+
+  menu # 返回菜单
 }
+
 # 显示菜单并提示用户进行选择  
 menu() {
   echo "请选择操作："
