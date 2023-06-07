@@ -77,7 +77,7 @@ admin: $admin
 errlimit: 999
 notice: |-
   粑屁@MJJBPG
-cron: "1 */1 * * *"
+cron: "0 */3 * * *"
 db: sqlite
 table: users
 sqlite:
@@ -87,11 +87,29 @@ EOF
   menu # 返回菜单
 }
 
+# 定义部署函数
+deploy() {
+  cd /opt/e5sub
+  docker-compose up -d
+  echo "e5sub已部署"
+  menu # 返回菜单
+}
+
+# 定义停止函数
+stop() {
+  cd /opt/e5sub
+  docker-compose down
+  echo "e5sub已停止"
+  menu # 返回菜单
+}
+
 # 显示菜单并提示用户进行选择  
 menu() {
   echo "请选择操作："
   echo "1. 配置Config文件"
   echo "2. 查看配置文件内容"
+  echo "3. 部署应用程序"
+  echo "4. 停止应用程序"
   echo "0. 退出"
 
   read -p "输入选项编号：" choice
@@ -101,17 +119,17 @@ menu() {
       ;;
     2)
       cat /opt/e5sub/config.yml
-      menu
+      menu # 返回菜单
+      ;;
+    3)
+      deploy
+      ;;
+    4)
+      stop
       ;;
     0)
       echo "感谢使用，再见！"
       exit 0
       ;;
     *)
-      echo "无效的选项，请重新选择"
-      menu
-      ;;
-  esac
-}
-
-menu
+      echo "无效的选项，请重新选择
