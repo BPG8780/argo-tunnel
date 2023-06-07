@@ -76,9 +76,7 @@ goroutine: 20
 admin: $admin
 errlimit: 999
 notice: |-
-  aaa
-  bbb
-  ccc
+  粑屁@MJJBPG
 cron: "1 */1 * * *"
 db: sqlite
 table: users
