@@ -12,4 +12,4 @@ cpu_speed=$(lscpu | grep 'CPU MHz:' | awk -F ': +' '{print $2}')
 echo -e "\033[1;33mCPU型号:\033[0m $cpu_model"
 echo -e "\033[1;33mCPU核心:\033[0m $num_cores"
 echo -e "\033[1;33mCPU速率:\033[0m ${cpu_speed}MHz"
-echo -e "\033[1;33mMemory:\033[0m $mem_total"
+echo -e "\033[1;33m-Memory:\033[0m $mem_total"
