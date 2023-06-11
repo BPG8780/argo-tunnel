@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# 获取 MemTotal 信息
-mem_total=$(grep 'MemTotal:' /proc/meminfo | awk '{print $2}')
-mem_total_g=$(numfmt --to=iec-i --format='%.2f' --suffix=B $((mem_total * 1024)))
-echo "Memory Total: $mem_total_g"
+# 读取内存总量，并以易于阅读的格式显示
+mem_total=$(free -h | awk '/^Mem:/ {print $2}')
 
 # 读取 CPU 核心数和其他信息
 num_cores=$(nproc)
@@ -14,4 +12,4 @@ cpu_speed=$(lscpu | grep 'CPU MHz:' | awk -F ': +' '{print $2}')
 echo -e "\033[1;33mCPU型号:\033[0m $cpu_model"
 echo -e "\033[1;33mCPU核心:\033[0m $num_cores"
 echo -e "\033[1;33mCPU速率:\033[0m ${cpu_speed}MHz"
-echo -e "\033[1;33mMEMOry:\033[0m $mem_total_i"
+echo -e "\033[1;33mMemory:\033[0m $mem_total"
