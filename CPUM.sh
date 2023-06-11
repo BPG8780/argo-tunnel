@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # 读取 CPU 核心数和内存信息
 num_cores=$(nproc)
 mem_info=$(free -h)
@@ -8,8 +7,9 @@ mem_info=$(free -h)
 cpu_model=$(lscpu | grep 'Model name:' | awk -F ': +' '{print $2}')
 cpu_speed=$(lscpu | grep 'CPU MHz:' | awk -F ': +' '{print $2}')
 
-# 打印输出结果
-echo "CPU型号: $cpu_model"
-echo "CPU速度: ${cpu_speed}MHz"
-echo "核心: $num_cores"
-echo "内存: $mem_info"
+# 打印输出结果（文本设置为黄色）
+echo -e "\033[1;33mCPU型号:\033[0m $cpu_model"
+echo -e "\033[1;33mCPU速率:\033[0m ${cpu_speed}MHz"
+echo -e "\033[1;33mCPU核心:\033[0m $num_cores"
+echo -e "\033[1;33m内存信息:\033[0m"
+echo -e "$mem_info"
