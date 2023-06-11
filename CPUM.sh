@@ -2,7 +2,7 @@
 
 # 获取 MemTotal 信息
 mem_total=$(grep 'MemTotal:' /proc/meminfo | awk '{print $2}')
-mem_total_i=$(numfmt --to=iec-i --suffix=B $mem_total)
+mem_total_i=$(numfmt --to=iec-i --suffix=G $mem_total)
 
 # 读取 CPU 核心数和其他信息
 num_cores=$(nproc)
