@@ -245,18 +245,16 @@ menu() {
   while true; do
     clear
     # 调用状态函数获取当前 Cloudflare 隧道的状态
-    echo "============================"
-    echo "        Cloudflare隧道             "
-    echo "============================"
-    echo -e "1. \033[32m安装Cloudflared(登录)\033[0m"
-    echo -e "2. \033[32m创建Cloudflared(隧道)\033[0m"
-    echo -e "3. \033[32m删除Cloudflared(隧道)\033[0m"
-    echo -e "4. \033[32m分离Cloudflared(证书)\033[0m"
+    echo -e "Cloudflare Argo Tunnel"
+    echo -e "1. \033[32m安装～登录 CloudFlare Argo Tunnel\033[0m"
+    echo -e "2. \033[32m创建 Argo Tunnel 隧道\033[0m"
+    echo -e "3. \033[32m删除 Argo Tunnel 隧道\033[0m"
+    echo -e "4. \033[32m提取 Argo Tunnel 证书\033[0m"
     echo -e "0. \033[32m退出\033[0m"
     echo "隧道版本：${version}"
     echo "$status"
     echo ""
-    read -p "\033[32m请输入选项号: \033[0m" choice
+    read -p "$(echo -e ${green}请输入选项号: ${reset})" choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
