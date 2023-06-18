@@ -17,13 +17,13 @@ version=$(cloudflared version)
 
 # 检测 Cloudflare Tunnel 状态，并存储到 $status 变量中
 if ps -Af | grep "cloudflared tunnel" | grep -v grep >/dev/null; then
-    status="Cloudflare隧道状态：已登录"
+    status="状态：已登录"
 elif sudo -u root bash -c 'command -v cloudflared >/dev/null && [[ -f /root/.cloudflared/cert.pem ]]'; then
-    status="Cloudflare隧道状态：已安装、已登录"
+    status="状态：已安装、已登录"
 elif command -v cloudflared >/dev/null; then
-    status="Cloudflare隧道状态：已安装"
+    status="状态：已安装"
 else
-    status="Cloudflare隧道状态：未安装"
+    status="状态：未安装"
 fi
 
 # 检测cgroup-tools是否已安装
@@ -246,12 +246,12 @@ menu() {
     clear
     # 调用状态函数获取当前 Cloudflare 隧道的状态
     echo -e "Cloudflare Argo Tunnel"
-    echo -e "1. \033[32m安装～登录 CloudFlare Argo Tunnel\033[0m"
+    echo -e "1. \033[32m安装 Argo Tunnel隧道\033[0m"
     echo -e "2. \033[32m创建 Argo Tunnel 隧道\033[0m"
     echo -e "3. \033[32m删除 Argo Tunnel 隧道\033[0m"
     echo -e "4. \033[32m提取 Argo Tunnel 证书\033[0m"
     echo -e "0. \033[32m退出\033[0m"
-    echo "隧道版本：${version}"
+    echo "${version}"
     echo "$status"
     echo ""
     read -p "$(echo -e ${green}请输入选项号: ${reset})" choice
