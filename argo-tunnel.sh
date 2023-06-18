@@ -8,7 +8,7 @@ reset='\033[0m'
 
 # 检查用户是否为root用户
 if [ "$EUID" -ne 0 ]; then 
-  echo -e "\033[31m请使用root权限运行\033[0m"
+  echo -e "\033[31m错误: \033[0m 必须使用root用户运行此脚本！\n"
   exit
 fi
 
@@ -45,7 +45,7 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
             sudo yum install -y cgroup-tools
         else
             # 不支持的Linux发行版
-            echo -e "\033[31m警告：不支持当前系统的Linux发行版，跳过安装cgroup-tools\033[0m"
+            echo -e "${red}警告：${plain} 不支持当前系统的Linux发行版，跳过安装cgroup-tools \n"
         fi
     else
         echo "/etc/os-release文件不存在于此系统。无法确定Linux发行版。"
@@ -104,8 +104,8 @@ config_cloudflared() {
   cloudflared tunnel route dns ${name} ${domain}
   cloudflared tunnel list
   uuid=$(cloudflared tunnel list | grep ${name} | sed -n 1p | awk '{print $1}')
-  read -p "请输入协议(quic/http2/h2mux)默认quic：" protocol
-  protocol=${protocol:-quic}
+  read -p "请输入协议(quic/http2/h2mux)默认auto：" protocol
+  protocol=${protocol:-auto}
   read -p "服务是否运行在 Docker 容器中？[y/N]：" is_docker
   if [[ ${is_docker} == [Yy] ]]; then
     read -p "请输入需要反代的服务的容器名称：" container_name
@@ -120,7 +120,7 @@ config_cloudflared() {
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
   # 如果使用 QUIC 协议，则调用 check_sysctl_udp_buffer_size 函数
-  if [[ ${protocol} == "quic" ]]; then
+  if [[ ${protocol} == "auto" ]]; then
     check_sysctl_udp_buffer_size
   fi
   cat > /root/${name}.yml <<EOF
@@ -133,7 +133,7 @@ ingress:
   - service: http_status:404
 originRequest:
   connectTimeout: 30s
-  noTLSVerify: true
+  noTLSVerify: false
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
@@ -153,6 +153,7 @@ ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
 CPUQuota=20%
 MemoryLimit=512M
 Restart=always
+RestartSec=0
 
 [Install]
 WantedBy=multi-user.target
@@ -247,25 +248,26 @@ menu() {
     echo "============================"
     echo "        Cloudflare隧道             "
     echo "============================"
-    echo "1. 安装Cloudflared(登录)"
-    echo "2. 创建Cloudflared(隧道)"
-    echo "3. 删除Cloudflared(隧道)"
-    echo "4. 分离Cloudflared(证书)"
-    echo "0. 退出"
+    echo -e "1. \033[32m安装Cloudflared(登录)\033[0m"
+    echo -e "2. \033[32m创建Cloudflared(隧道)\033[0m"
+    echo -e "3. \033[32m删除Cloudflared(隧道)\033[0m"
+    echo -e "4. \033[32m分离Cloudflared(证书)\033[0m"
+    echo -e "0. \033[32m退出\033[0m"
     echo "隧道版本：${version}"
     echo "$status"
     echo ""
-    read -p "$(echo -e ${green}请输入选项号:${reset}) " choice
+    read -p "\033[32m请输入选项号: \033[0m" choice
     case $choice in
       1) install_cloudflared;;
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
       4) cert_Cloudflare;;
       0) exit;;
-      *) echo -e "${red}无效的选项${reset}";;
+      *) echo -e "\033[31m无效的选项\033[0m";;
     esac
   done
 }
+
 
 # 主程序入口
 main() {
