@@ -52,6 +52,34 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
     fi
 fi
 
+# 定义新的缓冲区大小（以字节为单位）
+BUFFERSIZE=2500000
+
+# 获取当前UDP协议的缓冲区大小
+CURRENTSIZE=$(sudo sysctl net.core.rmem_default | awk '{print $NF}')
+
+# 检查当前大小是否小于2.5MB（即2500000字节）
+if [ "$CURRENTSIZE" -lt 2500000 ]; then
+    # 将新的缓冲区大小应用于UDP协议
+    sudo sysctl -w net.core.rmem_default=$BUFFERSIZE
+    sudo sysctl -w net.core.rmem_max=$BUFFERSIZE
+    sudo sysctl -w net.core.wmem_default=$BUFFERSIZE
+    sudo sysctl -w net.core.wmem_max=$BUFFERSIZE
+
+    # 更新配置文件中的参数
+    echo "net.core.rmem_default=$BUFFERSIZE" | sudo tee -a /etc/sysctl.conf > /dev/null
+    echo "net.core.rmem_max=$BUFFERSIZE" | sudo tee -a /etc/sysctl.conf > /dev/null
+    echo "net.core.wmem_default=$BUFFERSIZE" | sudo tee -a /etc/sysctl.conf > /dev/null
+    echo "net.core.wmem_max=$BUFFERSIZE" | sudo tee -a /etc/sysctl.conf > /dev/null
+
+    # 重新加载配置以应用更改
+    sudo sysctl -p
+    
+    echo "已将UDP缓冲区大小设置为$BUFFERSIZE字节。"
+else
+    echo "UDP缓冲区大小已经设置为$CURRENTSIZE字节，无需更改。"
+fi
+
 install_cloudflared() {
   # 检查系统架构
   check_arch
@@ -82,20 +110,6 @@ install_cloudflared() {
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
 }
 
-# 检测系统的 UDP 缓冲区大小，并自动设置新的大小。
-check_sysctl_udp_buffer_size() {
-  old_size=$(sudo sysctl net.core.rmem_max | awk '{print $3}')
-  if [ ${old_size} -lt 2500000 ]; then
-    new_size=2500000
-    sudo sysctl -w net.core.rmem_max=${new_size}
-    echo "net.core.rmem_max=${new_size}" | sudo tee /etc/sysctl.d/60-cloudflared-rmem.conf > /dev/null
-    sudo sysctl --system
-    echo "已将系统的 UDP 缓冲区大小更新为：${new_size}"
-  else
-    echo "当前系统的 UDP 缓冲区大小为：${old_size}"
-  fi
-}
-
 # 配置 Cloudflare 隧道的函数
 config_cloudflared() {
   read -p "请输入需要创建的隧道名称：" name
@@ -119,10 +133,6 @@ config_cloudflared() {
   fi
   read -p "请输入需要反代的服务端口[如不填写默认80]：" port
   port=${port:-80}
-  # 如果使用 QUIC 协议，则调用 check_sysctl_udp_buffer_size 函数
-  if [[ ${protocol} == "auto" ]]; then
-    check_sysctl_udp_buffer_size
-  fi
   cat > /root/${name}.yml <<EOF
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
@@ -246,7 +256,7 @@ menu() {
     clear
     # 调用状态函数获取当前 Cloudflare 隧道的状态
     echo -e "Cloudflare Argo Tunnel"
-    echo -e "1. \033[32m安装 Argo Tunnel隧道\033[0m"
+    echo -e "1. \033[32m安装 Argo Tunnel 隧道\033[0m"
     echo -e "2. \033[32m创建 Argo Tunnel 隧道\033[0m"
     echo -e "3. \033[32m删除 Argo Tunnel 隧道\033[0m"
     echo -e "4. \033[32m提取 Argo Tunnel 证书\033[0m"
