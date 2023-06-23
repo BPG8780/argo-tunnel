@@ -53,13 +53,13 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
 fi
 
 # 定义新的缓冲区大小（以字节为单位）
-BUFFERSIZE=2500000
+BUFFERSIZE=250000000
 
 # 获取当前UDP协议的缓冲区大小
 CURRENTSIZE=$(sudo sysctl net.core.rmem_default | awk '{print $NF}')
 
 # 检查当前大小是否小于2.5MB（即2500000字节）
-if [ "$CURRENTSIZE" -lt 2500000 ]; then
+if [ "$CURRENTSIZE" -lt 250000000 ]; then
     # 将新的缓冲区大小应用于UDP协议
     sudo sysctl -w net.core.rmem_default=$BUFFERSIZE
     sudo sysctl -w net.core.rmem_max=$BUFFERSIZE
@@ -74,10 +74,6 @@ if [ "$CURRENTSIZE" -lt 2500000 ]; then
 
     # 重新加载配置以应用更改
     sudo sysctl -p
-    
-    echo "已将UDP缓冲区大小设置为$BUFFERSIZE字节。"
-else
-    echo "UDP缓冲区大小已经设置为$CURRENTSIZE字节，无需更改。"
 fi
 
 install_cloudflared() {
@@ -108,6 +104,21 @@ install_cloudflared() {
 
   # 如果已经准备就绪，则显示成功消息
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
+}
+
+# 更新 Cloudflared
+renew_cloudflared() {
+    # 获取最新版本号
+    latest_version=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+    
+    # 构建下载链接
+    download_url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch"
+    
+    # 下载并安装最新版本
+    wget -q $download_url -O /usr/local/bin/cloudflared
+    chmod +x /usr/local/bin/cloudflared
+    
+    echo -e "${green}已将Cloudflared隧道升级到版本：$latest_version${reset}"
 }
 
 # 配置 Cloudflare 隧道的函数
@@ -260,6 +271,7 @@ menu() {
     echo -e "2. \033[32m创建 Argo Tunnel 隧道\033[0m"
     echo -e "3. \033[32m删除 Argo Tunnel 隧道\033[0m"
     echo -e "4. \033[32m提取 Argo Tunnel 证书\033[0m"
+    echo -e "5. \033[32m更新 Argo Tunnel 隧道\033[0m"
     echo -e "0. \033[32m退出\033[0m"
     echo "${version}"
     echo "$status"
@@ -270,6 +282,7 @@ menu() {
       2) config_cloudflared;;
       3) uninstall_cloudflared;;
       4) cert_Cloudflare;;
+      5) renew_cloudflared;;
       0) exit;;
       *) echo -e "\033[31m无效的选项\033[0m";;
     esac
