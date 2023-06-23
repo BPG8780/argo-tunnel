@@ -109,16 +109,10 @@ install_cloudflared() {
 # 更新 Cloudflared
 renew_cloudflared() {
     # 获取最新版本号
-    latest_version=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep "tag_name" | cut -d '"' -f 4)
-    
-    # 构建下载链接
-    download_url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch"
-    
-    # 下载并安装最新版本
-    wget -q $download_url -O /usr/local/bin/cloudflared
+    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
     chmod +x /usr/local/bin/cloudflared
     
-    echo -e "${green}已将Cloudflared隧道升级到版本：$latest_version${reset}"
+    echo -e "${green}已将Cloudflared隧道升级到版本：${version}${reset}"
 }
 
 # 配置 Cloudflare 隧道的函数
@@ -174,7 +168,7 @@ ExecStart=/usr/local/bin/cloudflared tunnel --config /root/${name}.yml run
 CPUQuota=20%
 MemoryLimit=512M
 Restart=always
-RestartSec=0
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
