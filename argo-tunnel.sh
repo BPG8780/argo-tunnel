@@ -149,6 +149,11 @@ ingress:
 originRequest:
   connectTimeout: 30s
   noTLSVerify: false
+  http2Origin: true
+  noHappyEyeballs: true
+  disableChunkedEncoding: true
+  keepAliveTimeout: 1s
+  keepAliveConnections: 1
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
