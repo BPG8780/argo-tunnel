@@ -142,19 +142,19 @@ config_cloudflared() {
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
 protocol: ${protocol}
-region=us-region1.v2.argotunnel.com
 ingress:
   - hostname: ${domain}
     service: http://${ipadr}:${port}
   - service: http_status:404
 originRequest:
-  connectTimeout: 30s
+  connectTimeout: 10s
   noTLSVerify: false
   http2Origin: true
   noHappyEyeballs: true
   disableChunkedEncoding: true
   keepAliveTimeout: 1s
   keepAliveConnections: 1
+  region: us
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
