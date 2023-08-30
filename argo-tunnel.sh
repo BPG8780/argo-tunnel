@@ -142,6 +142,7 @@ config_cloudflared() {
 tunnel: ${name}
 credentials-file: /root/.cloudflared/${uuid}.json
 protocol: ${protocol}
+region=us-region1.v2.argotunnel.com
 ingress:
   - hostname: ${domain}
     service: http://${ipadr}:${port}
