@@ -112,12 +112,47 @@ install_cloudflared() {
   sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
   sudo chown cloudflared:cloudflared /etc/default/cloudflared
   
+  cloudflared_service
+  
   # 登录 Cloudflare 服务
   echo -e "${yellow}请登录Cloudflare隧道...${reset}"
   cloudflared tunnel login
 
   # 如果已经准备就绪，则显示成功消息
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
+}
+
+cloudflared_service() {
+  if [[ ! -f /etc/systemd/system/cloudflared.service ]]; then
+    cat > /etc/systemd/system/cloudflared.service << EOF
+[Unit]
+Description=cloudflared DNS over HTTPS proxy
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=cloudflared
+EnvironmentFile=/etc/default/cloudflared
+ExecStart=/usr/local/bin/cloudflared proxy-dns \$CLOUDFLARED_OPTS
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    echo -e "${green}已创建并写入/etc/systemd/system/cloudflared.service${reset}"
+  else
+    echo -e "${yellow}/etc/systemd/system/cloudflared.service已存在${reset}"
+  fi
+  
+  # 启动服务
+  sudo systemctl start cloudflared.service
+  echo -e "${green}已启动cloudflared.service${reset}"
+
+  # 设置开机启动
+  sudo systemctl enable cloudflared.service
+  echo -e "${green}已设置cloudflared.service为开机自启动${reset}"
 }
 
 # 更新 Cloudflared
