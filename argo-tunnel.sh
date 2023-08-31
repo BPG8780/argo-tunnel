@@ -93,7 +93,8 @@ install_cloudflared() {
     # 下载 Cloudflared
     wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
     sudo chmod +x /usr/local/bin/cloudflared
-    sudo useradd -s /usr/sbin/nologin -r -M cloudflared
+    sudo id -u cloudflared &>/dev/null || sudo useradd --system --user-group --shell /usr/sbin/nologin cloudflared
+
     # 安装 Cloudflared
     echo -e "${green}已将Cloudflared隧道安装到/usr/local/bin/目录下${reset}"
   fi
