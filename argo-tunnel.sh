@@ -26,7 +26,7 @@ else
     status="状态：未安装"
 fi
 
-# 检测cgroup-tools是否已安装
+# 检查是否已安装cgroup-tools
 if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
 
     # 检查/etc/os-release文件是否存在
@@ -37,12 +37,12 @@ if ! dpkg -s cgroup-tools >/dev/null 2>&1; then
         # 根据ID_LIKE的值安装cgroup-tools
         if [[ $id_like == *"debian"* ]]; then
             # Debian 或 Ubuntu
-            sudo apt-get update
-            sudo apt-get install cgroup-tools
+            sudo apt-get update > /dev/null
+            sudo apt-get install -y cgroup-tools > /dev/null
         elif [[ $id_like == *"rhel fedora"* ]]; then
             # RHEL 或 Fedora
-            sudo yum install -y epel-release
-            sudo yum install -y cgroup-tools
+            sudo yum install -y epel-release > /dev/null
+            sudo yum install -y cgroup-tools > /dev/null
         else
             # 不支持的Linux发行版
             echo -e "${red}警告：${plain} 不支持当前系统的Linux发行版，跳过安装cgroup-tools \n"
@@ -92,15 +92,28 @@ install_cloudflared() {
 
     # 下载 Cloudflared
     wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-$arch -O /usr/local/bin/cloudflared
-    chmod +x /usr/local/bin/cloudflared
-
+    sudo chmod +x /usr/local/bin/cloudflared
+    sudo useradd -s /usr/sbin/nologin -r -M cloudflared
     # 安装 Cloudflared
     echo -e "${green}已将Cloudflared隧道安装到/usr/local/bin/目录下${reset}"
-
-    # 登录 Cloudflare 服务
-    echo -e "${yellow}请登录Cloudflare隧道...${reset}"
-    cloudflared tunnel login
   fi
+
+  # 检查/etc/default/cloudflared文件是否存在
+  if [[ ! -f /etc/default/cloudflared ]]; then
+    echo -e "${red}警告：未检测到/etc/default/cloudflared文件${reset}"
+    echo "CLOUDFLARED_OPTS=--port 5053 --upstream https://1.1.1.1/dns-query --upstream https://1.0.0.1/dns-query" | sudo tee /etc/default/cloudflared >/dev/null
+    echo -e "${green}已创建并写入/etc/default/cloudflared文件${reset}"
+  else
+    echo -e "${green}已检测到/etc/default/cloudflared文件${reset}"
+  fi
+
+  # 更改文件所有者和组
+  sudo chown cloudflared:cloudflared /usr/local/bin/cloudflared
+  sudo chown cloudflared:cloudflared /etc/default/cloudflared
+  
+  # 登录 Cloudflare 服务
+  echo -e "${yellow}请登录Cloudflare隧道...${reset}"
+  cloudflared tunnel login
 
   # 如果已经准备就绪，则显示成功消息
   echo -e "${green}已经登录Cloudflared隧道服务！${reset}"
@@ -154,7 +167,9 @@ originRequest:
   disableChunkedEncoding: true
   keepAliveTimeout: 1s
   keepAliveConnections: 1
-  region: us
+  region: us-region1.v2.argotunnel.com
+replica:
+  allNodes: true
 EOF
 
   echo "配置文件已经保存到：/root/${name}.yml"
