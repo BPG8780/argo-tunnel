@@ -19,4 +19,4 @@ download_url="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$lat
 echo $download_url
 
 # 在这里添加需要的操作，比如下载文件等
-wget -O "Debian-Ubuntu_Required_linux-image_$latest_tag-$math_version-1_amd64.deb" $download_url  # 下载文件到当前目录（需要安装wget命令）
+wget -O "Debian-Ubuntu_Required_linux-image-$latest_tag_$math_version-1_amd64.deb" $download_url  # 下载文件到当前目录（需要安装wget命令）
