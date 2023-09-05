@@ -15,4 +15,5 @@ file_name=$(echo "$file_template" | sed "s/{{version}}/$latest_version/g" | sed 
 # 下载文件
 curl -LO "https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest/download/$file_name"
 
-echo "File downloaded: $file_name"
+# 重命名文件为bbrplus.deb
+mv "$file_name" "bbrplus.deb"
