@@ -1,59 +1,10 @@
-#!/bin/bash
+latest_tag=$(curl -s "https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
 
-# 检查系统类型
-if [[ "$(uname)" == "Linux" ]]; then
-    # 获取系统信息
-    if [[ -f /etc/os-release ]]; then
-        source /etc/os-release
-        OS=$NAME
-    elif type lsb_release >/dev/null 2>&1; then
-        OS=$(lsb_release -si)
-    elif [[ -f /etc/lsb-release ]]; then
-        source /etc/lsb-release
-        OS=$DISTRIB_ID
-    elif [[ -f /etc/debian_version ]]; then
-        OS=Debian
-    else
-        OS=$(uname -s)
-    fi
+# 将数学计算的结果赋值给变量math_version
+math_version=$(echo $latest_tag | awk -F'.' '{printf "%.1f\n", $1+$2/100}')
 
-    # 检查系统架构
-    ARCH=$(uname -m)
+download_url="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag-$math_version-1_amd64.deb"
+echo $download_url
 
-    # 设置基本的URL地址
-    BASE_URL="https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest/download/"
-
-    # 根据系统类型和架构拼接下载链接
-    DOWNLOAD_URL="${BASE_URL}"
-    case "$OS" in
-        "Ubuntu")
-            if [[ "$ARCH" == "x86_64" ]]; then
-                DOWNLOAD_URL+="Debian-Ubuntu_Required_linux-image-6.5.1-bbrplus_6.5.1-1_amd64.deb"
-            elif [[ "$ARCH" == "aarch64" ]]; then
-                DOWNLOAD_URL+="Debian-Ubuntu_Required_linux-image-6.5.1-bbrplus_6.5.1-1_arm64.deb"
-            fi
-            ;;
-        "CentOS")
-            if [[ "$ARCH" == "x86_64" ]]; then
-                DOWNLOAD_URL+="CentOS-7_Required_kernel-6.5.1-bbrplus.el7.x86_64.rpm"
-            elif [[ "$ARCH" == "aarch64" ]]; then
-                DOWNLOAD_URL+="CentOS-Stream-8_Required_kernel-6.5.1-bbrplus.el8.aarch64.rpm"
-            fi
-            ;;
-        *)
-            echo "Unsupported Linux distribution."
-            exit 1
-            ;;
-    esac
-
-    # 下载文件
-    if [[ -n "$DOWNLOAD_URL" ]]; then
-        wget "$DOWNLOAD_URL"
-    else
-        echo "Unsupported architecture."
-        exit 1
-    fi
-else
-    echo "This script is only compatible with Linux."
-    exit 1
-fi
+# 在这里添加需要的操作，比如下载文件等
+wget $download_url  # 下载文件到当前目录（需要安装wget命令）
