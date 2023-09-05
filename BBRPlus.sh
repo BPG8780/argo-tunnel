@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# 获取最新版本号
-latest_version=$(curl -s https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest | grep -oP '(?<=tag\/)[^"]+')
+URL=$(curl -s https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest | grep "browser_download_url.*deb" | cut -d : -f 2,3 | tr -d \")
+OUTPUT_FILE="Debian-Ubuntu_Required_linux-image-latest_amd64.deb"
 
-# 打印版本号
-echo "最新版本号为: $latest_version"
+# 下载文件
+wget "$URL" -O "$OUTPUT_FILE"
+
+# 输出下载完成信息
+echo "文件已下载到 $OUTPUT_FILE"
