@@ -21,7 +21,7 @@ if [[ "$(uname)" == "Linux" ]]; then
     ARCH=$(uname -m)
 
     # 设置基本的URL地址
-    BASE_URL="https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest/"
+    BASE_URL="https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest/download/"
 
     # 根据系统类型和架构拼接下载链接
     DOWNLOAD_URL="${BASE_URL}"
