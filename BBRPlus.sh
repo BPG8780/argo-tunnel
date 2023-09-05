@@ -49,11 +49,32 @@ function install_bbrplus() {
     fi
 }
 
+function uninstall_bbrplus() {
+    if [ -e "/boot" ]; then
+        bbrplus_files=$(find /boot -name "*bbrplus*")
+        if [ -n "$bbrplus_files" ]; then
+            sudo dpkg -r bbrplus
+
+            for file in $bbrplus_files; do
+                sudo rm $file
+            done
+
+            echo -e "\e[32mBBRPlus卸载成功\e[0m"
+        else
+            echo -e "\e[31m未找到 BBRPlus 内核文件，请检查您的安装。\e[0m"
+        fi
+    else
+        echo -e "\e[31m未找到 boot 目录，请检查您的安装。\e[0m"
+    fi
+}
+
+
 function display_menu() {
     clear
     echo "请选择一个选项："
     echo "1. 安装 BBRPlus"
-    echo "2. 退出"
+    echo "2. 卸载 BBRPlus"
+    echo "3. 退出"
     echo
 }
 
@@ -65,6 +86,9 @@ function read_option() {
             install_bbrplus
             ;;
         2)
+            uninstall_bbrplus
+            ;;
+        3)
             echo "正在退出..."
             exit 0
             ;;
