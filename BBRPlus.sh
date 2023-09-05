@@ -1,27 +1,15 @@
 #!/bin/bash
 
-# 获取系统架构
-architecture=$(uname -m)
+# 获取最新版本号
+latest_version=$(curl -s https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest | grep '"tag_name":' | awk -F '"' '{print $4}')
 
-# 使用curl命令从GitHub API获取发布信息，并提取最新的版本号
-version=$(curl -s https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest | jq -r ".tag_name")
+# 设置文件名模板
+file_template="Debian-Ubuntu_Required_linux-image-{{version}}-bbrplus_{{version}}-1_amd64.deb"
 
-# 构建文件名模式
-filename_pattern="Debian-Ubuntu_Required_linux-image-$version"
-
-# 根据系统架构选择正确的后缀
-if [[ "$architecture" == "x86_64" ]]; then
-    filename_pattern="${filename_pattern}_amd64.deb"
-elif [[ "$architecture" == "aarch64" ]]; then
-    filename_pattern="${filename_pattern}_arm64.deb"
-else
-    echo "不支持的系统架构：$architecture"
-    exit 1
-fi
-
-# 使用curl命令从GitHub API获取文件列表，并通过jq过滤提取匹配的文件URL
-file_url=$(curl -s "https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest" | jq -r ".assets[] | select(.name | test(\"$filename_pattern\")) | .browser_download_url")
-filename=$(basename "$file_url")
+# 替换文件名模板中的版本号
+file_name=$(echo "$file_template" | sed "s/{{version}}/$latest_version/g")
 
 # 下载文件
-wget "$file_url" -O "$filename"
+curl -LO "https://github.com/UJX6N/bbrplus-6.x_stable/releases/latest/download/$file_name"
+
+echo "File downloaded: $file_name"
