@@ -1,4 +1,5 @@
-latest_tag=$(curl -s "https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
+latest_release_url="https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest"
+latest_tag=$(curl -s $latest_release_url | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
 
 os_type=$(uname -s)
 if [ "$os_type" = "Linux" ]; then
