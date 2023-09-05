@@ -20,15 +20,27 @@ if [ "$os_type" = "Linux" ]; then
         sudo dpkg -i bbrplus.deb
 
         if [ $? -eq 0 ]; then
-            echo "BBRPlus安装成功"
+            echo -e "\e[32mBBRPlus安装成功\e[0m"
+
+            if [ -e "/boot" ]; then
+                bbrplus_files=$(find /boot -name "*bbrplus*")
+                if [ -n "$bbrplus_files" ]; then
+                    echo -e "\e[32m在 boot 目录中找到 BBRPlus 内核文件\e[0m"
+                    echo "$bbrplus_files"
+                else
+                    echo -e "\e[31m在 boot 目录中未找到 BBRPlus 内核文件，请检查您的安装。\e[0m"
+                fi
+            else
+                echo -e "\e[31m未找到 boot 目录，请检查您的安装。\e[0m"
+            fi
         else
-            echo "BBRPlus安装失败"
+            echo -e "\e[31mBBRPlus安装失败。\e[0m"
         fi
 
         rm bbrplus.deb
     else
-        echo "该脚本仅适用于 Debian 和 Ubuntu 系统."
+        echo -e "\e[31m该脚本仅适用于 Debian 和 Ubuntu 系统。\e[0m"
     fi
 else
-    echo "该脚本仅适用于 Linux 系统."
+    echo -e "\e[31m该脚本仅适用于 Linux 系统。\e[0m"
 fi
