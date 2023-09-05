@@ -16,6 +16,16 @@ if [ "$os_type" = "Linux" ]; then
         download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"$math_version-1_$arch.deb"
 
         wget -O "bbrplus.deb" $download
+
+        sudo dpkg -i bbrplus.deb
+
+        if [ $? -eq 0 ]; then
+            echo "BBRPlus安装成功"
+        else
+            echo "BBRPlus安装失败"
+        fi
+
+        rm bbrplus.deb
     else
         echo "该脚本仅适用于 Debian 和 Ubuntu 系统."
     fi
