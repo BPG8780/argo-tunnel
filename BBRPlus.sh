@@ -1,5 +1,3 @@
-#!/bin/bash
-
 function install_bbrplus() {
     latest_tag=$(curl -s "https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
 
@@ -71,19 +69,37 @@ function uninstall_bbrplus() {
     fi
 }
 
-function main() {
-    display_menu
+function display_menu() {
+    clear
+    echo "请选择一个选项："
+    echo "1. 安装 BBRPlus"
+    echo "2. 卸载 BBRPlus"
+    echo "3. 退出"
+    echo
+}
 
-    read -p "请输入您的选择：" choice
-
+function read_option() {
+    local choice
+    read -p "请输入您的选择: " choice
     case $choice in
-        1) install_bbrplus ;;
-        2) uninstall_bbrplus ;;
-        0) exit ;;
-        *) echo "无效的选择，请重试" ;;
+        1)
+            install_bbrplus
+            ;;
+        2)
+            uninstall_bbrplus
+            ;;
+        0)
+            echo "正在退出..."
+            exit 0
+            ;;
+        *)
+            echo "无效的选择。"
+            ;;
     esac
 }
 
 while true; do
-    main
+    display_menu
+    read_option
+    echo
 done
