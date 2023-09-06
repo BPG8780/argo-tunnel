@@ -24,7 +24,7 @@ function install_bbrplus() {
     
             if [ $? -eq 0 ]; then
                 echo -e "\e[32mBBRPlus安装成功\e[0m"
-    
+                sleep 3
                 if [ -e "/boot" ]; then
                     bbrplus_files=$(find /boot -name "*bbrplus*")
                     if [ -n "$bbrplus_files" ]; then
@@ -38,6 +38,7 @@ function install_bbrplus() {
                 fi
             else
                 echo -e "\e[31mBBRPlus安装失败。\e[0m"
+                sleep 3
             fi
     
             rm bbrplus.deb
@@ -47,6 +48,8 @@ function install_bbrplus() {
     else
         echo -e "\e[31m该脚本仅适用于 Linux 系统。\e[0m"
     fi
+    
+    sleep 20
 }
 
 function uninstall_bbrplus() {
@@ -68,38 +71,19 @@ function uninstall_bbrplus() {
     fi
 }
 
+function main() {
+    display_menu
 
-function display_menu() {
-    clear
-    echo "请选择一个选项："
-    echo "1. 安装 BBRPlus"
-    echo "2. 卸载 BBRPlus"
-    echo "3. 退出"
-    echo
-}
+    read -p "请输入您的选择：" choice
 
-function read_option() {
-    local choice
-    read -p "请输入您的选择: " choice
     case $choice in
-        1)
-            install_bbrplus
-            ;;
-        2)
-            uninstall_bbrplus
-            ;;
-        3)
-            echo "正在退出..."
-            exit 0
-            ;;
-        *)
-            echo "无效的选择。"
-            ;;
+        1) install_bbrplus ;;
+        2) uninstall_bbrplus ;;
+        0) exit ;;
+        *) echo "无效的选择，请重试" ;;
     esac
 }
 
 while true; do
-    display_menu
-    read_option
-    echo
+    main
 done
