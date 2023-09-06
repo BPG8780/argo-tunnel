@@ -84,7 +84,7 @@ function install_bbrplus() {
             ;;
     esac
     
-    sleep 20
+    show_menu
 }
 
 function uninstall_bbrplus() {
