@@ -10,11 +10,13 @@ function install_bbrplus() {
                 os_name="Ubuntu"
             elif [ -f "/etc/centos-release" ]; then
                 centos_version=$(grep -oE '[0-9]+\.[0-9]+' /etc/centos-release)
-                if [[ "$centos_version" == "8" ]]; then
-                    if grep -q "CentOS Stream" /etc/centos-release; then
+                if [[ "$centos_version" == "7" ]]; then
+                    os_name="CentOS7"
+                elif [[ "$centos_version" =~ ^8.* ]]; then
+                    if cat /etc/centos-release | grep -q "CentOS Stream"; then
                         os_name="CentOS-Stream-8"
                     else
-                        os_name="CentOS7"
+                        os_name="CentOS-8"
                     fi
                 else
                     os_name=""
@@ -35,11 +37,11 @@ function install_bbrplus() {
                     package_manager="rpm"
                     package_file="bbrplus.rpm"
                     ;;
-                CentOS-Stream-8)
+                CentOS-8|CentOS-Stream-8)
                     arch=$(uname -m)
                     case $arch in
                         x86_64|aarch64)
-                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.$arch.rpm"
+                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-8_Required_kernel-$latest_tag.el8.$arch.rpm"
                             ;;
                         *)
                             echo -e "\e[31m该脚本不支持此架构。\e[0m"
@@ -50,7 +52,7 @@ function install_bbrplus() {
                     package_file="bbrplus.rpm"
                     ;;
                 *)
-                    echo -e "\e[31m该脚本仅适用于 Debian、Ubuntu、CentOS7 和 CentOS Stream 8 系统。\e[0m"
+                    echo -e "\e[31m该脚本仅适用于 Debian、Ubuntu、CentOS7 和 CentOS 8 系统。\e[0m"
                     return
                     ;;
             esac
@@ -84,8 +86,13 @@ function install_bbrplus() {
             ;;
     esac
     
-    show_menu
+    sleep 20
+
+    if [ "$os_name" != "CentOS-Stream-8" ] && [ "$os_name" != "CentOS-8" ]; then
+        show_menu
+    fi
 }
+
 
 function uninstall_bbrplus() {
     if [ -e "/boot" ]; then
