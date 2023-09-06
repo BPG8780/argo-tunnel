@@ -36,12 +36,10 @@ function install_bbrplus() {
                     package_file="bbrplus.rpm"
                     ;;
                 CentOS-Stream-8)
-                    case $(uname -m) in
-                        x86_64)
-                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.x86_64.rpm"
-                            ;;
-                        aarch64)
-                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.aarch64.rpm"
+                    arch=$(uname -m)
+                    case $arch in
+                        x86_64|aarch64)
+                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.$arch.rpm"
                             ;;
                         *)
                             echo -e "\e[31m该脚本不支持此架构。\e[0m"
