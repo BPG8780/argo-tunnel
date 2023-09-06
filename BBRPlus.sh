@@ -2,24 +2,39 @@ function install_bbrplus() {
     latest_tag=$(curl -s "https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest" | grep -o '"tag_name": "[^"]*' | grep -o '[^"]*$')
 
     os_type=$(uname -s)
-    if [ "$os_type" = "Linux" ]; then
-        if [ -f "/etc/debian_version" ]; then
-            os_name="Debian"
-        elif [ -f "/etc/lsb-release" ] && grep -q "DISTRIB_ID=Ubuntu" /etc/lsb-release; then
-            os_name="Ubuntu"
-        else
-            os_name=""
-        fi
-    
-        if [ -n "$os_name" ]; then
-            math_version=${latest_tag:0:5}
-            arch=$(dpkg --print-architecture)
-            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"$math_version-1_$arch.deb"
-    
-            wget -O "bbrplus.deb" $download
-    
-            sudo dpkg -i bbrplus.deb
-    
+    case $os_type in
+        Linux)
+            if [ -f "/etc/debian_version" ]; then
+                os_name="Debian"
+            elif [ -f "/etc/lsb-release" ] && grep -q "DISTRIB_ID=Ubuntu" /etc/lsb-release; then
+                os_name="Ubuntu"
+            elif [ -f "/etc/centos-release" ] && grep -q "CentOS Linux release 7" /etc/centos-release; then
+                os_name="CentOS7"
+            else
+                os_name=""
+            fi
+
+            case $os_name in
+                Debian|Ubuntu)
+                    math_version=${latest_tag:0:5}
+                    download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"$math_version-1_$(dpkg --print-architecture).deb"
+                    package_manager="dpkg"
+                    package_file="bbrplus.deb"
+                    ;;
+                CentOS7)
+                    download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-7_Required_kernel-$latest_tag.el7.$(uname -m).rpm"
+                    package_manager="rpm"
+                    package_file="bbrplus.rpm"
+                    ;;
+                *)
+                    echo -e "\e[31m该脚本仅适用于 Debian、Ubuntu 和 CentOS7 系统。\e[0m"
+                    return
+                    ;;
+            esac
+
+            wget -O "$package_file" "$download"
+            sudo $package_manager -i "$package_file"
+
             if [ $? -eq 0 ]; then
                 echo -e "\e[32mBBRPlus安装成功\e[0m"
                 sleep 3
@@ -38,14 +53,13 @@ function install_bbrplus() {
                 echo -e "\e[31mBBRPlus安装失败。\e[0m"
                 sleep 3
             fi
-    
-            rm bbrplus.deb
-        else
-            echo -e "\e[31m该脚本仅适用于 Debian 和 Ubuntu 系统。\e[0m"
-        fi
-    else
-        echo -e "\e[31m该脚本仅适用于 Linux 系统。\e[0m"
-    fi
+
+            rm "$package_file"
+            ;;
+        *)
+            echo -e "\e[31m该脚本仅适用于 Linux 系统。\e[0m"
+            ;;
+    esac
     
     sleep 20
 }
