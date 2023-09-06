@@ -8,8 +8,17 @@ function install_bbrplus() {
                 os_name="Debian"
             elif [ -f "/etc/lsb-release" ] && grep -q "DISTRIB_ID=Ubuntu" /etc/lsb-release; then
                 os_name="Ubuntu"
-            elif [ -f "/etc/centos-release" ] && grep -q "CentOS Linux release 7" /etc/centos-release; then
-                os_name="CentOS7"
+            elif [ -f "/etc/centos-release" ]; then
+                centos_version=$(grep -oE '[0-9]+\.[0-9]+' /etc/centos-release)
+                if [[ "$centos_version" == "8" ]]; then
+                    if grep -q "CentOS Stream" /etc/centos-release; then
+                        os_name="CentOS-Stream-8"
+                    else
+                        os_name="CentOS7"
+                    fi
+                else
+                    os_name=""
+                fi
             else
                 os_name=""
             fi
@@ -26,8 +35,24 @@ function install_bbrplus() {
                     package_manager="rpm"
                     package_file="bbrplus.rpm"
                     ;;
+                CentOS-Stream-8)
+                    case $(uname -m) in
+                        x86_64)
+                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.x86_64.rpm"
+                            ;;
+                        aarch64)
+                            download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/CentOS-Stream-8_Required_kernel-$latest_tag.el8.aarch64.rpm"
+                            ;;
+                        *)
+                            echo -e "\e[31m该脚本不支持此架构。\e[0m"
+                            return
+                            ;;
+                    esac
+                    package_manager="rpm"
+                    package_file="bbrplus.rpm"
+                    ;;
                 *)
-                    echo -e "\e[31m该脚本仅适用于 Debian、Ubuntu 和 CentOS7 系统。\e[0m"
+                    echo -e "\e[31m该脚本仅适用于 Debian、Ubuntu、CentOS7 和 CentOS Stream 8 系统。\e[0m"
                     return
                     ;;
             esac
