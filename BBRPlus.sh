@@ -98,6 +98,14 @@ function uninstall_bbrplus() {
 
 function display_menu() {
     clear
+    
+    if [ "$(uname -s)" = "Linux" ]; then
+        current_kernel=$(uname -r)
+        current_algorithm=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
+
+    fi
+    echo "当前内核版本: $current_kernel"
+    echo "当前拥塞控制算法: $current_algorithm"
     echo "请选择一个选项："
     echo "1. 安装 BBRPlus"
     echo "2. 卸载 BBRPlus"
