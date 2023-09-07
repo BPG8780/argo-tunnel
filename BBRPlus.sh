@@ -65,6 +65,12 @@ function install_bbrplus() {
             fi
 
             rm "$package_file"
+            
+            echo "net.ipv4.tcp_congestion_control = bbrplus" | sudo tee -a /etc/sysctl.conf
+            echo "net.core.default_qdisc = fq" | sudo tee -a /etc/sysctl.conf
+
+            sudo sysctl -p
+            
             ;;
         *)
             echo -e "\e[31m该脚本仅适用于 Linux 系统。\e[0m"
