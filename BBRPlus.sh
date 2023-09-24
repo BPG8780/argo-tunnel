@@ -26,8 +26,7 @@ function install_bbrplus() {
 
             case $os_name in
                 Debian|Ubuntu)
-                    math_version=${latest_tag:0:5}
-                    download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"$math_version-1_$(dpkg --print-architecture).deb"
+                      download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"-1_$(dpkg --print-architecture).deb"
                     package_manager="dpkg"
                     package_file="bbrplus.deb"
                     ;;
