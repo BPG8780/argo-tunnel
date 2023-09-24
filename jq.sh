@@ -4,22 +4,33 @@
 response=$(curl -s https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest)
 
 # 使用jq解析JSON并获取符合条件的下载链接（不包含 "headers"）
-download_url=$(echo "$response" | jq -r '.assets[] | select(.name | contains("headers") | not) .browser_download_url')
+download_urls=$(echo "$response" | jq -r '.assets[] | select(.name | contains("headers") | not) .browser_download_url')
 
-# 根据操作系统和架构选择合适的下载命令
-if [[ $(uname -s) == "Linux" ]]; then
-  if [[ $(uname -m) == "x86_64" ]]; then
-    download_command="wget"
-  elif [[ $(uname -m) == "aarch64" ]]; then
-    download_command="wget"
-  else
-    echo "Unsupported architecture: $(uname -m)"
+# 根据操作系统和架构选择合适的下载链接
+case "$(uname -s)" in
+  Linux)
+    case "$(uname -m)" in
+      x86_64)
+        desired_pattern="x86_64"
+        ;;
+      aarch64)
+        desired_pattern="aarch64"
+        ;;
+      *)
+        echo "Unsupported architecture: $(uname -m)"
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "Unsupported operating system: $(uname -s)"
     exit 1
-  fi
-else
-  echo "Unsupported operating system: $(uname -s)"
-  exit 1
-fi
+    ;;
+esac
 
-# 使用下载命令下载文件
-$download_command "$download_url"
+# 遍历打印符合条件的下载链接
+for url in $download_urls; do
+  if [[ $url == *"$desired_pattern"* ]]; then
+    echo "$url"
+  fi
+done
