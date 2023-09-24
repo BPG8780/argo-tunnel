@@ -26,7 +26,7 @@ function install_bbrplus() {
 
             case $os_name in
                 Debian|Ubuntu)
-                      download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag"_"-1_$(dpkg --print-architecture).deb"
+                      download="https://github.com/UJX6N/bbrplus-6.x_stable/releases/download/$latest_tag/Debian-Ubuntu_Required_linux-image-$latest_tag-1_$(dpkg --print-architecture).deb"
                     package_manager="dpkg"
                     package_file="bbrplus.deb"
                     ;;
@@ -65,7 +65,7 @@ function install_bbrplus() {
 
             rm "$package_file"
             
-            echo "net.ipv4.tcp_congestion_control = bbrplus" | sudo tee -a /etc/sysctl.conf
+            echo "net.ipv4.tcp_congestion_control = bbr" | sudo tee -a /etc/sysctl.conf
             echo "net.core.default_qdisc = fq" | sudo tee -a /etc/sysctl.conf
 
             sudo sysctl -p
