@@ -20,15 +20,19 @@ case $DISTRIBUTION in
     centos)
         if grep -q "release 7" /etc/centos-release; then
             DISTRIBUTION="CentOS-7"
+            INSTALL_COMMAND="rpm -i"
         elif grep -q "release 8" /etc/centos-release; then
             DISTRIBUTION="CentOS-Stream-8"
+            INSTALL_COMMAND="rpm -i"
         fi
         ;;
     "Debian GNU/Linux"*)
         DISTRIBUTION="Debian"
+        INSTALL_COMMAND="dpkg -i"
         ;;
     ubuntu)
         DISTRIBUTION="Ubuntu"
+        INSTALL_COMMAND="dpkg -i"
         ;;
 esac
 
@@ -57,3 +61,10 @@ filename=$(basename "$download_url")
 extension="${filename##*.}"
 mv "$filename" "bbrplus.$extension"
 
+# 安装软件包
+echo "开始安装..."
+if [[ $INSTALL_COMMAND ]]; then
+    $INSTALL_COMMAND "bbrplus.$extension"
+else
+    echo "未找到适用于 $DISTRIBUTION 的安装命令。"
+fi
