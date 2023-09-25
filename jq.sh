@@ -15,6 +15,9 @@ else
     os_name="Unknown"
 fi
 
+# 处理识别的发行版名称，仅保留 "Ubuntu" 部分
+os_name="${os_name%% *}"
+
 # 打印识别的发行版名称
 echo "识别的发行版: $os_name"
 
