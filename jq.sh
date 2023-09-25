@@ -38,7 +38,7 @@ ARCHITECTURE=$(dpkg --print-architecture)
 response=$(curl -s "$API_URL")
 
 # 使用jq解析JSON数据
-download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '(.assets[] | select(.name | contains($distro) and contains($arch))) | .browser_download_url')
+download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '(.assets[] | select(.name | contains($distro) and contains($arch) and (contains("headers") | not))) | .browser_download_url')
 
 # 打印解析结果
 echo "Linux发行版: $DISTRIBUTION"
