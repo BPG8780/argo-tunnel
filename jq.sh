@@ -20,20 +20,11 @@ else
 fi
 
 # 使用jq解析JSON数据
-download_url=""
-case $DISTRIBUTION in
-    "Ubuntu")
-        download_url=$(echo "$response" | jq -r '.assets[] | select(.name | contains("ubuntu")) | .browser_download_url')
-        ;;
-    "CentOS")
-        download_url=$(echo "$response" | jq -r '.assets[] | select(.name | contains("centos")) | .browser_download_url')
-        ;;
-    # 添加其他发行版的处理逻辑...
-    *)
-        echo "不支持的发行版: $DISTRIBUTION"
-        exit 1
-esac
+download_urls=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" '.assets[] | select(.name | contains($distro)) | .browser_download_url')
+IFS=$'\n' read -rd '' -a download_urls_array <<<"$download_urls"
 
 # 打印解析结果
 echo "Linux发行版: $DISTRIBUTION"
-echo "下载链接: $download_url"
+for url in "${download_urls_array[@]}"; do
+    echo "下载链接: $url"
+done
