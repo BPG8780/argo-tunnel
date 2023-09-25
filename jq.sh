@@ -6,25 +6,16 @@ response=$(curl -s https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/release
 # 使用jq解析JSON并获取符合条件的下载链接
 download_urls=$(echo "$response" | jq -r '.assets[].browser_download_url | select(contains("headers") | not)')
 
-# 遍历打印每个下载链接，并根据发行版进行输出
+# 遍历打印每个下载链接，并读取链接中的字符
 for url in $download_urls; do
-  # 检查链接是否包含 "Debian-Ubuntu"
-  if [[ $url == *"Debian-Ubuntu"* ]]; then
-    # 替换链接中的字符为 "Ubuntu"
-    ubuntu_url="${url/Debian-Ubuntu/Ubuntu}"
-    echo "适用于 Ubuntu 的链接: $ubuntu_url"
-  else
-    # 输出原始下载链接
-    echo "原始下载链接: $url"
-  fi
-  
-  # 检查链接是否包含 "Debian-Ubuntu"
-  if [[ $url == *"Debian-Ubuntu"* ]]; then
-    # 替换链接中的字符为 "Debian"
-    debian_url="${url/Debian-Ubuntu/Debian}"
-    echo "适用于 Debian 的链接: $debian_url"
-  else
-    # 输出原始下载链接
-    echo "原始下载链接: $url"
-  fi
+  echo "原始下载链接: $url"
+
+  # 使用变量读取链接中的字符
+  filename=$(basename "$url")
+  extension="${filename##*.}"
+  basename="${filename%.*}"
+
+  echo "文件名: $filename"
+  echo "扩展名: $extension"
+  echo "基本名称: $basename"
 done
