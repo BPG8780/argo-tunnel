@@ -16,10 +16,9 @@ for url in $download_urls; do
 
   # 使用变量读取链接中的字符
   filename=$(basename "$url")
-  extension="${filename##*.}"
-  
-  # 获取基本名称
-  basename="${filename%.*}"
+
+  # 提取基本名称部分
+  basename=$(echo "$filename" | sed 's|.*/\([^/]*\)_.*|\1|')
 
   # 替换系统名称和架构以识别不同系统和架构
   basename="${basename/Debian-Ubuntu/$distro-$arch}"
