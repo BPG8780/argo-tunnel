@@ -18,7 +18,7 @@ fi
 
 # 特殊处理CentOS 7发行版
 if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
-    DISTRIBUTION="CentOS"
+    DISTRIBUTION="CentOS-7"
 fi
 
 # 特殊处理Debian发行版
