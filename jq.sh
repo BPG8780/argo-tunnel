@@ -12,8 +12,8 @@ if [ -f /etc/os-release ]; then
 elif [ -f /usr/lib/os-release ]; then
     source /usr/lib/os-release
     DISTRIBUTION=$NAME
-elif [ -f /etc/lsb-release ]; then
-    source /etc/lsb-release
+elif [ -f /etc/centos-release ]; then
+    source /etc/centos-release
     DISTRIBUTION=$DISTRIB_ID
 else
     DISTRIBUTION=$(uname -s)
