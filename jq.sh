@@ -49,4 +49,11 @@ download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch 
 # 打印解析结果
 echo "Linux发行版: $DISTRIBUTION"
 echo "系统架构: $ARCHITECTURE"
-echo "下载链接: $download_url"
+echo "开始下载..."
+curl -LO "$download_url"
+
+# 重命名文件为bbrplus并保留后缀
+filename=$(basename "$download_url")
+extension="${filename##*.}"
+mv "$filename" "bbrplus.$extension"
+
