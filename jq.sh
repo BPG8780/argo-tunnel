@@ -20,15 +20,31 @@ else
     DISTRIBUTION=$(uname -s)
 fi
 
-# 特殊处理CentOS 7发行版
-if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
-    DISTRIBUTION="CentOS"
+# 获取系统架构
+ARCHITECTURE=""
+if [ -n "$(command -v dpkg)" ]; then
+    ARCHITECTURE=$(dpkg --print-architecture)
+elif [ -n "$(command -v rpm)" ]; then
+    ARCHITECTURE=$(rpm --eval %{_host_cpu})
+elif [ -n "$(command -v uname)" ]; then
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64|amd64)
+            ARCHITECTURE="x86_64"
+            ;;
+        aarch64|arm64)
+            ARCHITECTURE="arm64"
+            ;;
+        *)
+            echo "不支持的架构: $ARCH"
+            exit 1
+            ;;
+    esac
 fi
 
-# 获取系统架构
-ARCHITECTURE=$(uname -m)
-
-if [[ $DISTRIBUTION == "debian" || $DISTRIBUTION == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
+    ARCHITECTURE="x86_64"
+elif [[ $DISTRIBUTION == "debian" || $DISTRIBUTION == "ubuntu" ]]; then
     case $ARCHITECTURE in
         x86_64)
             ARCHITECTURE="amd64"
