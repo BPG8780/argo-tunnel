@@ -11,7 +11,11 @@ elif [ -f /usr/lib/os-release ]; then
     DISTRIBUTION=$ID
 elif [ -f /etc/lsb-release ]; then
     source /etc/lsb-release
-    DISTRIBUTION=$DISTRIB_ID
+    if [[ $DISTRIB_ID == "Debian" ]]; then
+        DISTRIBUTION="debian"
+    elif [[ $DISTRIB_ID == "Ubuntu" ]]; then
+        DISTRIBUTION="ubuntu"
+    fi
 else
     DISTRIBUTION=$(uname -s)
 fi
@@ -24,7 +28,7 @@ fi
 # 获取系统架构
 ARCHITECTURE=$(uname -m)
 
-if [[ $DISTRIBUTION == "Debian" || $DISTRIBUTION == "Ubuntu" ]]; then
+if [[ $DISTRIBUTION == "debian" || $DISTRIBUTION == "ubuntu" ]]; then
     case $ARCHITECTURE in
         x86_64)
             ARCHITECTURE="amd64"
