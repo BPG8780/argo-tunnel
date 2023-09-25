@@ -11,52 +11,32 @@ elif [ -f /usr/lib/os-release ]; then
     DISTRIBUTION=$ID
 elif [ -f /etc/lsb-release ]; then
     source /etc/lsb-release
-    if [[ $DISTRIB_ID == "Debian" ]]; then
-        DISTRIBUTION="debian"
-    elif [[ $DISTRIB_ID == "Ubuntu" ]]; then
-        DISTRIBUTION="ubuntu"
-    fi
+    DISTRIBUTION=$DISTRIB_ID
 else
     DISTRIBUTION=$(uname -s)
 fi
 
-# 获取系统架构
-ARCHITECTURE=""
-if [ -n "$(command -v dpkg)" ]; then
-    ARCHITECTURE=$(dpkg --print-architecture)
-elif [ -n "$(command -v rpm)" ]; then
-    ARCHITECTURE=$(rpm --eval %{_host_cpu})
-elif [ -n "$(command -v uname)" ]; then
-    ARCH=$(uname -m)
-    case $ARCH in
-        x86_64|amd64)
-            ARCHITECTURE="x86_64"
-            ;;
-        aarch64|arm64)
-            ARCHITECTURE="arm64"
-            ;;
-        *)
-            echo "不支持的架构: $ARCH"
-            exit 1
-            ;;
-    esac
+# 特殊处理CentOS 7发行版
+if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
+    DISTRIBUTION="CentOS-7"
 fi
 
-if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
-    ARCHITECTURE="x86_64"
-elif [[ $DISTRIBUTION == "debian" || $DISTRIBUTION == "ubuntu" ]]; then
-    case $ARCHITECTURE in
-        x86_64)
-            ARCHITECTURE="amd64"
-            ;;
-        aarch64)
-            ARCHITECTURE="arm64"
-            ;;
-        *)
-            echo "不支持的架构: $ARCHITECTURE"
-            exit 1
-            ;;
-    esac
+# 特殊处理Debian发行版
+if [[ $DISTRIBUTION == "Debian GNU/Linux"* ]]; then
+    DISTRIBUTION="Debian"
+fi
+
+# 特殊处理Ubuntu发行版
+if [[ $DISTRIBUTION == "ubuntu" ]]; then
+    DISTRIBUTION="Ubuntu"
+fi
+
+# 获取系统架构
+ARCHITECTURE=""
+if [[ $DISTRIBUTION == "Debian" || $DISTRIBUTION == "Ubuntu" ]]; then
+    ARCHITECTURE=$(dpkg --print-architecture)
+else
+    ARCHITECTURE=$(uname -m)
 fi
 
 # 发送GET请求获取JSON数据
