@@ -22,7 +22,7 @@ if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; t
 fi
 
 # 特殊处理Debian发行版
-if [[ $DISTRIBUTION == "debian" ]]; then
+if [[ $DISTRIBUTION == "Debian GNU/Linux"* ]]; then
     DISTRIBUTION="Debian"
 fi
 
@@ -31,15 +31,16 @@ if [[ $DISTRIBUTION == "ubuntu" ]]; then
     DISTRIBUTION="Ubuntu"
 fi
 
+# 获取系统架构
+ARCHITECTURE=$(dpkg --print-architecture)
+
 # 发送GET请求获取JSON数据
 response=$(curl -s "$API_URL")
 
 # 使用jq解析JSON数据
-download_urls=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" '.assets[] | select(.name | contains($distro)) | .browser_download_url')
-IFS=$'\n' read -rd '' -a download_urls_array <<<"$download_urls"
+download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '.assets[] | select(.name | contains($distro) and contains($arch)) | .browser_download_url')
 
 # 打印解析结果
 echo "Linux发行版: $DISTRIBUTION"
-for url in "${download_urls_array[@]}"; do
-    echo "下载链接: $url"
-done
+echo "系统架构: $ARCHITECTURE"
+echo "下载链接: $download_url"
