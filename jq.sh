@@ -19,11 +19,11 @@ for url in $download_urls; do
 
   # 将 "Ubuntu" 替换为变量以识别 Ubuntu 系统
   distro="Ubuntu"
-  basename="${basename/Debian-Ubuntu/$distro}"
+  basename="${basename/Ubuntu/$distro}"
 
   # 将 "arm64" 替换为变量以识别架构
   arch="arm64"
   basename="${basename/arm64/$arch}"
 
-  echo "基本名称: $basename"
+  echo "获取Ubuntu: $basename"
 done
