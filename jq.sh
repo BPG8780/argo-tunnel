@@ -21,6 +21,16 @@ if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; t
     DISTRIBUTION="CentOS-7"
 fi
 
+# 特殊处理Debian发行版
+if [[ $DISTRIBUTION == "debian" ]]; then
+    DISTRIBUTION="Debian"
+fi
+
+# 特殊处理Ubuntu发行版
+if [[ $DISTRIBUTION == "ubuntu" ]]; then
+    DISTRIBUTION="Ubuntu"
+fi
+
 # 发送GET请求获取JSON数据
 response=$(curl -s "$API_URL")
 
