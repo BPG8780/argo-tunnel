@@ -21,18 +21,23 @@ if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; t
     DISTRIBUTION="CentOS-7"
 fi
 
-# 特殊处理Debian发行版
-if [[ $DISTRIBUTION == "Debian GNU/Linux"* ]]; then
-    DISTRIBUTION="Debian"
-fi
-
-# 特殊处理Ubuntu发行版
-if [[ $DISTRIBUTION == "ubuntu" ]]; then
-    DISTRIBUTION="Ubuntu"
-fi
-
 # 获取系统架构
-ARCHITECTURE=$(dpkg --print-architecture)
+ARCHITECTURE=$(uname -m)
+
+if [[ $DISTRIBUTION == "Debian" || $DISTRIBUTION == "Ubuntu" ]]; then
+    case $ARCHITECTURE in
+        x86_64)
+            ARCHITECTURE="amd64"
+            ;;
+        aarch64|arm64)
+            ARCHITECTURE="arm64"
+            ;;
+        *)
+            echo "不支持的架构: $ARCHITECTURE"
+            exit 1
+            ;;
+    esac
+fi
 
 # 发送GET请求获取JSON数据
 response=$(curl -s "$API_URL")
