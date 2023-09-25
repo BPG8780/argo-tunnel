@@ -25,7 +25,7 @@ if [[ $DISTRIBUTION == "Debian GNU/Linux"* ]]; then
 fi
 
 # 使用jq解析JSON数据
-download_urls=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" '.assets[] | select(.name | contains($distro)) | .browser_download_url')
+download_urls=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" '.assets[] | select((.name | contains($distro)) and (.name | contains("headers") | not)) | .browser_download_url')
 IFS=$'\n' read -rd '' -a download_urls_array <<<"$download_urls"
 
 # 打印解析结果
