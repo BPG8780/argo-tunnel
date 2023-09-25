@@ -22,7 +22,7 @@ fi
 
 # 特殊处理CentOS 7发行版
 if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; then
-    DISTRIBUTION="CentOS-7"
+    DISTRIBUTION="CentOS"
 fi
 
 # 获取系统架构
@@ -33,7 +33,7 @@ if [[ $DISTRIBUTION == "debian" || $DISTRIBUTION == "ubuntu" ]]; then
         x86_64)
             ARCHITECTURE="amd64"
             ;;
-        aarch64|arm64)
+        aarch64)
             ARCHITECTURE="arm64"
             ;;
         *)
