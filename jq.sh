@@ -13,6 +13,9 @@ case $DISTRIBUTION in
     "Debian GNU/Linux")
         DISTRIBUTION="Debian"
         ;;
+    "CentOS Stream")
+        DISTRIBUTION="CentOS-Stream-8"
+        ;;
 esac
 
 ARCHITECTURE=""
