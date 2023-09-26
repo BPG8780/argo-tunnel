@@ -23,7 +23,7 @@ case $DISTRIBUTION in
         DISTRIBUTION="CentOS-Stream-8"
         ;;
     *)
-        echo "不支持Liunx系统: $DISTRIBUTION"
+        echo "不支持的Linux系统: $DISTRIBUTION"
         exit 1
         ;;
 esac
@@ -40,14 +40,11 @@ response=$(curl -s "$API_URL")
 download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '(.assets[] | select(.name | contains($distro) and contains($arch) and (contains("headers") | not))) | .browser_download_url')
 
 echo "正在下载BBR-PLUS..."
-wget "$download_url" -O bbr-file
+wget "$download_url"
 
-# 仅在已知的操作系统上进行重命名
-case $DISTRIBUTION in
-    "Ubuntu" | "Debian" | "CentOS-7" | "CentOS-Stream-8")
-        mv "bbr-file" "bbr.${download_url##*.}"
-        ;;
-    *)
-        echo "不支持Liunx系统"
-        ;;
-esac
+# 获取原始文件名和扩展名
+filename=$(basename "$download_url")
+extension="${filename##*.}"
+
+# 重命名文件为bbrplus并保留原始扩展名
+mv "$filename" "bbrplus.$extension"
