@@ -19,6 +19,9 @@ case $DISTRIBUTION in
     "CentOS Stream")
         DISTRIBUTION="CentOS-Stream-8"
         ;;
+    "AlmaLinu")
+        DISTRIBUTION="CentOS-Stream-8"
+        ;;    
 esac
 
 ARCHITECTURE=""
