@@ -25,12 +25,8 @@ case $DISTRIBUTION in
             INSTALL_COMMAND="rpm -i"
         fi
         ;;
-    "Debian GNU/Linux"*)
+    "Debian"* | "Ubuntu" | "LinuxMint")
         DISTRIBUTION="Debian"
-        INSTALL_COMMAND="dpkg -i"
-        ;;
-    ubuntu)
-        DISTRIBUTION="Ubuntu"
         INSTALL_COMMAND="dpkg -i"
         ;;
 esac
@@ -53,10 +49,10 @@ filename=$(basename "$download_url")
 extension="${filename##*.}"
 mv "$filename" "bbrplus.$extension"
 
-echo "正在安装BBR-PLUS..."
-if [[ $INSTALL_COMMAND ]]; then
-    $INSTALL_COMMAND "bbrplus.$extension"
-fi
+# echo "正在安装BBR-PLUS..."
+# if [[ $INSTALL_COMMAND ]]; then
+#    $INSTALL_COMMAND "bbrplus.$extension"
+# fi
 
-echo "正在删除下载的BBR-PLUS文件..."
-rm -f "bbrplus.$extension"
+# echo "正在删除下载的BBR-PLUS文件..."
+# rm -f "bbrplus.$extension"
