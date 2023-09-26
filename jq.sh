@@ -22,7 +22,7 @@ if [[ $DISTRIBUTION == "centos" ]] && grep -q "release 7" /etc/centos-release; t
 fi
 
 # 特殊处理Debian发行版
-if [[ $DISTRIBUTION == "Debian GNU/Linux"* ]]; then
+if [[ $DISTRIBUTION == Debian\ GNU\/Linux* ]]; then
     DISTRIBUTION="Debian"
 fi
 
