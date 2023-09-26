@@ -9,6 +9,12 @@ else
     DISTRIBUTION=$(uname -s)
 fi
 
+case $DISTRIBUTION in
+    "Debian GNU/Linux")
+        DISTRIBUTION="Debian"
+        ;;
+esac
+
 ARCHITECTURE=""
 if [[ $DISTRIBUTION == "Debian" || $DISTRIBUTION == "Ubuntu" ]]; then
     ARCHITECTURE=$(dpkg --print-architecture)
