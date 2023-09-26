@@ -23,7 +23,7 @@ case $DISTRIBUTION in
         DISTRIBUTION="CentOS-Stream-8"
         ;;
     *)
-        echo "不支持的Linux系统: $DISTRIBUTION"
+        echo -e "\033[31m不支持的Linux系统: $DISTRIBUTION\033[0m"
         exit 1
         ;;
 esac
@@ -40,26 +40,26 @@ response=$(curl -s "$API_URL")
 download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '(.assets[] | select(.name | contains($distro) and contains($arch) and (contains("headers") | not))) | .browser_download_url')
 
 if [[ -z "$download_url" ]]; then
-    echo "获取下载文件失败～已停止……"
+    echo -e "\033[31m获取下载文件失败～已停止……\033[0m"
     exit 1
 fi
 
-echo "正在下载BBR-PLUS..."
+echo -e "\033[36m正在下载BBR-PLUS...\033[0m"
 wget "$download_url"
 
-# 获取原始文件名和扩展名
 filename=$(basename "$download_url")
 extension="${filename##*.}"
 
-# 重命名文件为bbrplus并保留原始扩展名
 mv "$filename" "bbrplus.$extension"
 
 if [[ $DISTRIBUTION == "Debian" || $DISTRIBUTION == "Ubuntu" ]]; then
-    echo "正在安装BBR-PLUS..."
-    dpkg -i "bbrplus.$extension"
+    echo -e "\033[36m正在安装BBR-PLUS...\033[0m"
+    sudo dpkg -i "bbrplus.$extension"
 elif [[ $DISTRIBUTION == "CentOS-7" || $DISTRIBUTION == "CentOS-Stream-8" ]]; then
-    echo "正在安装BBR-PLUS..."
-    rpm -i "bbrplus.$extension"
+    echo -e "\033[36m正在安装BBR-PLUS...\033[0m"
+    sudo rpm -i "bbrplus.$extension"
 else
-    echo "不支持的Linux系统: $DISTRIBUTION"
+    echo -e "\033[31m不支持的Linux系统: $DISTRIBUTION\033[0m"
 fi
+
+rm -f "bbrplus.$extension"
