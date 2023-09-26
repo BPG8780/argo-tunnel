@@ -1,5 +1,4 @@
 #!/bin/bash
-# -*- coding: utf-8 -*-
 
 API_URL="https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest"
 
@@ -14,11 +13,18 @@ case $DISTRIBUTION in
     "Debian GNU/Linux")
         DISTRIBUTION="Debian"
         ;;
+    "Ubuntu")
+        DISTRIBUTION="Ubuntu"
+        ;;
     "CentOS Linux")
         DISTRIBUTION="CentOS-7"
         ;;
     "CentOS Stream" | "AlmaLinux")
         DISTRIBUTION="CentOS-Stream-8"
+        ;;
+    *)
+        echo "不支持Liunx系统: $DISTRIBUTION"
+        exit 1
         ;;
 esac
 
@@ -36,9 +42,12 @@ download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch 
 echo "正在下载BBR-PLUS..."
 wget "$download_url" -O bbr-file
 
-# 获取文件的原始名称和后缀
-original_filename=$(basename "$download_url")
-extension="${original_filename##*.}"
-
-# 重命名文件为bbr，并保留原始后缀
-mv bbr-file "bbr.$extension"
+# 仅在已知的操作系统上进行重命名
+case $DISTRIBUTION in
+    "Ubuntu" | "Debian" | "CentOS-7" | "CentOS-Stream-8")
+        mv "bbr-file" "bbr.${download_url##*.}"
+        ;;
+    *)
+        echo "不支持Liunx系统"
+        ;;
+esac
