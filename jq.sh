@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- coding: utf-8 -*-
 
 API_URL="https://api.github.com/repos/UJX6N/bbrplus-6.x_stable/releases/latest"
 
@@ -33,4 +34,11 @@ response=$(curl -s "$API_URL")
 download_url=$(echo "$response" | jq -r --arg distro "$DISTRIBUTION" --arg arch "$ARCHITECTURE" '(.assets[] | select(.name | contains($distro) and contains($arch) and (contains("headers") | not))) | .browser_download_url')
 
 echo "正在下载BBR-PLUS..."
-wget "$download_url"
+wget "$download_url" -O bbr-file
+
+# 获取文件的原始名称和后缀
+original_filename=$(basename "$download_url")
+extension="${original_filename##*.}"
+
+# 重命名文件为bbr，并保留原始后缀
+mv bbr-file "bbr.$extension"
