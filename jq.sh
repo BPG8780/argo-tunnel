@@ -13,6 +13,9 @@ case $DISTRIBUTION in
     "Debian GNU/Linux")
         DISTRIBUTION="Debian"
         ;;
+    "CentOS Linux")
+        DISTRIBUTION="CentOS-7"
+        ;;
     "CentOS Stream")
         DISTRIBUTION="CentOS-Stream-8"
         ;;
