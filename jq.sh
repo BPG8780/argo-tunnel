@@ -16,12 +16,9 @@ case $DISTRIBUTION in
     "CentOS Linux")
         DISTRIBUTION="CentOS-7"
         ;;
-    "CentOS Stream")
+    "CentOS Stream" | "AlmaLinux")
         DISTRIBUTION="CentOS-Stream-8"
         ;;
-    "AlmaLinu")
-        DISTRIBUTION="CentOS-Stream-8"
-        ;;    
 esac
 
 ARCHITECTURE=""
