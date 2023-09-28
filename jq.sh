@@ -104,7 +104,7 @@ function uninstall_bbrplus() {
     fi
 }
 
-function display_menu() {
+function show_menu() {
     clear
     
     if [ "$(uname -s)" = "Linux" ]; then
@@ -145,9 +145,5 @@ function read_option() {
     esac
 }
 
-while true; do
-    display_menu
-    read_option
-    echo
-done
+show_menu
 
