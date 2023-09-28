@@ -90,7 +90,7 @@ function show_menu() {
     echo "1. 安装 BBR-PLUS"
     echo "2. 退出"
 
-    read -rp "请输入选项数字并按 Enter 键: " choice
+    read -rp "请输入选项数字" choice
     case $choice in
         1)
             install_bbrplus
@@ -99,7 +99,7 @@ function show_menu() {
             exit 0
             ;;
         *)
-            echo -e "\033[31m无效的选项，请重新选择！\033[0m"
+            echo -e "\033[31m无效的选项\033[0m"
             show_menu
             ;;
     esac
