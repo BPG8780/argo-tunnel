@@ -85,65 +85,26 @@ function install_bbrplus() {
     rm -f "bbrplus.$extension"
 }
 
-function uninstall_bbrplus() {
-    if [ -e "/boot" ]; then
-        bbrplus_files=$(find /boot -name "*bbrplus*")
-        if [ -n "$bbrplus_files" ]; then
-            sudo dpkg -r bbrplus
-
-            for file in $bbrplus_files; do
-                sudo rm $file
-            done
-
-            echo -e "\e[32mBBRPlus卸载成功\e[0m"
-        else
-            echo -e "\e[31m未找到 BBRPlus 内核文件，请检查您的安装。\e[0m"
-        fi
-    else
-        echo -e "\e[31m未找到 boot 目录，请检查您的安装。\e[0m"
-    fi
-}
-
+# Display menu for BBR-PLUS installation selection
 function show_menu() {
-    clear
-    
-    if [ "$(uname -s)" = "Linux" ]; then
-       current_kernel=$(uname -r)
-       current_algorithm=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
-       current_qdisc=$(sysctl net.core.default_qdisc | awk '{print $3}')
+    echo -e "\033[36m请选择要进行的操作：\033[0m"
+    echo "1. 安装 BBR-PLUS"
+    echo "2. 退出"
 
-    fi
-
-    echo "请选择一个选项："
-    echo "1. 安装 BBRPlus"
-    echo "2. 卸载 BBRPlus"
-    echo "0. 退出"
-    echo
-    echo "内核版本: $current_kernel"
-    echo "拥塞算法: $current_algorithm"
-    echo "调度算法: $current_qdisc"
-    echo
-}
-
-function read_option() {
-    local choice
-    read -p "请输入您的选择: " choice
+    read -rp "请输入选项数字" choice
     case $choice in
         1)
             install_bbrplus
             ;;
         2)
-            uninstall_bbrplus
-            ;;
-        0)
-            echo "正在退出..."
             exit 0
             ;;
         *)
-            echo "无效的选择。"
+            echo -e "\033[31m无效的选项\033[0m"
+            show_menu
             ;;
     esac
 }
 
+# Call the function to show the menu and handle user's choice
 show_menu
-
